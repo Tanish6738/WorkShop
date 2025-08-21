@@ -1,0 +1,93 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage
+coverage
+*.lcov
+.nyc_output
+
+# Build output / dist
+dist
+build
+.tmp
+.temp
+tmp
+temp
+
+# Dependency directories
+node_modules
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+
+# Database / seed artifacts
+seed-output.json
+
+# Logs / uploads / generated assets
+uploads
+public/uploads
+
+# Caches
+.eslintcache
+.cache
+cache
+
+# OS / Editor junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDE / Editor settings
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Node REPL history
+.node_repl_history
+
+# Package tarballs
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Lockfiles (uncomment to ignore if you decide not to commit them)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Optional debug / profiling
+profile-*.
+heapdump-*.heapsnapshot
+
+# Coverage reports (alt tools)
+lcov-report
+
+# Ignore local TLS certs
+certs/
+
+# Output of tests
+test-results
+
+# Misc
+*.orig
+*.rej
