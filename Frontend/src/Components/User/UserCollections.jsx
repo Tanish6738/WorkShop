@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 
 const UserCollections = ({ loading, error, collections }) => {
   return (
@@ -28,12 +29,13 @@ const UserCollections = ({ loading, error, collections }) => {
               transition={{ duration:.35, ease:'easeOut' }}
               whileHover={{ y:-3 }}
               whileTap={{ scale:.97 }}
-              className="card p-4 rounded-lg border border-[var(--pv-border)] bg-[var(--pv-surface)]/90"
+              className="group card p-4 rounded-lg border border-[var(--pv-border)] bg-[var(--pv-surface)]/90 hover:border-[var(--pv-orange)]/60 transition-colors"
             >
-              <div className="flex flex-col gap-1">
-                <strong className="text-sm font-semibold text-[var(--pv-white)] line-clamp-2">{c.name || 'Untitled Collection'}</strong>
+              <Link to={`/collections/${c._id || c.id}`} className="flex flex-col gap-1 no-underline">
+                <strong className="text-sm font-semibold text-[var(--pv-white)] line-clamp-2 group-hover:text-[var(--pv-orange)] transition-colors">{c.name || 'Untitled Collection'}</strong>
                 {c.description && <span className="text-[11px] leading-snug text-[var(--pv-text-dim)] line-clamp-3">{c.description}</span>}
-              </div>
+                <span className="mt-1 text-[10px] text-[var(--pv-text-dim)] group-hover:text-[var(--pv-orange)] transition-colors inline-flex items-center gap-1">Open<span className="inline-block">→</span></span>
+              </Link>
             </motion.li>
           ))}
         </ul>

@@ -1,26 +1,27 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
-
-  console.log(user);
-  const handleLogout = async () => {
-    await logout();
-    navigate("/");
-  };
-
   const location = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = async () => { await logout(); navigate("/"); };
+
+  const toggleMobile = useCallback(() => setMobileOpen(o => !o), []);
+  // Close on route change
+  useEffect(()=>{ setMobileOpen(false); }, [location.pathname]);
+  // Escape key
+  useEffect(()=>{ const onKey = e=>{ if(e.key==='Escape') setMobileOpen(false); }; if(mobileOpen) window.addEventListener('keydown', onKey); return ()=>window.removeEventListener('keydown', onKey); }, [mobileOpen]);
 
   return (
-    <header className="sticky top-0 z-20 w-full border-b border-[var(--pv-border)] bg-[var(--pv-surface)]/70 backdrop-blur anim-fade-in">
+  <header className="sticky top-0 z-30 w-full border-b border-[var(--pv-border)] bg-[var(--pv-surface)]/70 backdrop-blur anim-fade-in">
       <div className="mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex h-14 items-center justify-between gap-4">
-          <div className="flex items-center gap-4 md:gap-6">
+      <div className="flex items-center gap-3 md:gap-6">
             <motion.div
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -33,6 +34,19 @@ const Navbar = () => {
                 PromptVault
               </Link>
             </motion.div>
+            {/* Hamburger for mobile */}
+            <motion.button
+              whileTap={{ scale:0.9 }}
+              onClick={toggleMobile}
+              aria-label="Toggle navigation"
+              aria-expanded={mobileOpen}
+              className="inline-flex sm:hidden relative w-10 h-10 items-center justify-center rounded-md border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60"
+            >
+              <span className="sr-only">Menu</span>
+              <span className="block absolute h-[2px] w-5 bg-[var(--pv-white)] transition-all" style={{ transform: mobileOpen ? 'translateY(0) rotate(45deg)' : 'translateY(-6px)' }} />
+              <span className="block absolute h-[2px] w-5 bg-[var(--pv-white)] transition-opacity" style={{ opacity: mobileOpen ? 0 : 1 }} />
+              <span className="block absolute h-[2px] w-5 bg-[var(--pv-white)] transition-all" style={{ transform: mobileOpen ? 'translateY(0) rotate(-45deg)' : 'translateY(6px)' }} />
+            </motion.button>
             <nav className="hidden sm:flex items-center gap-1 text-sm">
               <NavLink
                 to="/"
@@ -197,8 +211,70 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            <motion.div
+              key="nav-overlay"
+              initial={{ opacity:0 }}
+              animate={{ opacity:.5 }}
+              exit={{ opacity:0 }}
+              transition={{ duration:.25 }}
+              onClick={()=>setMobileOpen(false)}
+              className="fixed inset-0 z-20 bg-black/70 backdrop-blur-sm" />
+            <motion.nav
+              key="nav-panel"
+              initial={{ opacity:0, y:-16 }}
+              animate={{ opacity:1, y:0 }}
+              exit={{ opacity:0, y:-12 }}
+              transition={{ duration:.35, ease:[0.4,0,0.2,1] }}
+              className="absolute left-0 right-0 top-14 z-30 mx-auto w-full max-w-7xl px-4 md:px-6"
+            >
+              <div className="rounded-xl border border-[var(--pv-border)] bg-[var(--pv-surface)]/95 backdrop-blur-sm shadow-lg overflow-hidden">
+                <div className="grid gap-1 py-3 text-sm">
+                  <MobileNavLink to="/" label="Home" />
+                  <MobileNavLink to="/prompts" label="Browse" />
+                  {user && <MobileNavLink to="/prompts/mine" label="My Prompts" />}
+                  <MobileNavLink to="/collections" label="Collections" />
+                  {user && <MobileNavLink to="/collections/mine" label="My Collections" />}
+                  {user?.role === 'admin' && <MobileNavLink to="/admin" label="Admin" />}
+                  {user && <MobileNavLink to="/profile" label="My Profile" />}
+                  {!user && (
+                    <div className="px-3 pt-2">
+                      <Link to="/auth" className="w-full inline-flex justify-center rounded-md bg-[var(--pv-orange)] text-[var(--pv-black)] px-4 py-2 font-medium text-sm hover:brightness-110">Login / Register</Link>
+                    </div>
+                  )}
+                  {user && (
+                    <div className="flex gap-2 px-3 pt-2">
+                      <Link to={`/users/${user.id || user._id}`} className="flex-1 inline-flex justify-center rounded-md border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] px-4 py-2 text-xs font-medium hover:bg-[var(--pv-surface-hover)]">Public Profile</Link>
+                      <button onClick={handleLogout} className="flex-1 inline-flex justify-center rounded-md bg-[var(--pv-orange)] text-[var(--pv-black)] px-4 py-2 text-xs font-medium hover:brightness-110">Logout</button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.nav>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 };
+
+const MobileNavLink = ({ to, label }) => (
+  <NavLink
+    to={to}
+    end
+    className={({ isActive }) =>
+      `mx-2 rounded-md px-3 py-2 flex items-center justify-between gap-2 transition-colors ${
+        isActive
+          ? 'bg-[var(--pv-surface-alt)] text-[var(--pv-orange)] font-semibold'
+          : 'text-[var(--pv-text-dim)] hover:text-[var(--pv-white)] hover:bg-[var(--pv-surface-alt)]'
+      }`
+    }
+  >
+    <span>{label}</span>
+  </NavLink>
+);
 
 export default Navbar;
