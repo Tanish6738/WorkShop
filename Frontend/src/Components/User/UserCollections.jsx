@@ -1,27 +1,45 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const UserCollections = ({ loading, error, collections }) => {
   return (
-    <div>
-      <h3 style={{ margin:'24px 0 8px' }}>Public Collections</h3>
-      {loading && <div>Loading collections...</div>}
-      {error && <div style={err}>{error}</div>}
-      {!loading && !error && (!collections || collections.length === 0) && <div>No public collections yet.</div>}
-      <ul style={{ listStyle:'none', padding:0, margin:0, display:'grid', gap:12 }}>
-        {collections?.map(c => (
-          <li key={c._id || c.id} style={item}>
-            <div style={{ display:'flex', flexDirection:'column', gap:4 }}>
-              <strong>{c.name || 'Untitled Collection'}</strong>
-              {c.description && <span style={{ fontSize:13, color:'#555' }}>{c.description}</span>}
-            </div>
-          </li>
-        ))}
-      </ul>
+    <div className="mt-6">
+      <h3 className="text-lg font-semibold tracking-tight mb-3 flex items-center gap-2">
+        <span className="w-1.5 h-5 rounded bg-[var(--pv-orange)]" />
+        Public Collections
+      </h3>
+      {loading && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 4 }).map((_,i)=>(<div key={i} className="h-20 card shimmer rounded-lg"/>))}
+        </div>
+      )}
+      {error && <div className="form-error text-xs">{error}</div>}
+      {!loading && !error && (!collections || collections.length === 0) && (
+        <div className="text-sm text-[var(--pv-text-dim)]">No public collections yet.</div>
+      )}
+      <AnimatePresence mode="popLayout">
+        <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 list-none p-0 m-0">
+          {collections?.map(c => (
+            <motion.li
+              key={c._id || c.id}
+              initial={{ opacity:0, y:12 }}
+              animate={{ opacity:1, y:0 }}
+              exit={{ opacity:0, y:-8 }}
+              transition={{ duration:.35, ease:'easeOut' }}
+              whileHover={{ y:-3 }}
+              whileTap={{ scale:.97 }}
+              className="card p-4 rounded-lg border border-[var(--pv-border)] bg-[var(--pv-surface)]/90"
+            >
+              <div className="flex flex-col gap-1">
+                <strong className="text-sm font-semibold text-[var(--pv-white)] line-clamp-2">{c.name || 'Untitled Collection'}</strong>
+                {c.description && <span className="text-[11px] leading-snug text-[var(--pv-text-dim)] line-clamp-3">{c.description}</span>}
+              </div>
+            </motion.li>
+          ))}
+        </ul>
+      </AnimatePresence>
     </div>
   );
 };
-
-const item = { padding:12, border:'1px solid #eee', borderRadius:6, background:'#fff' };
-const err = { background:'#ffe6e6', color:'#a40000', padding:'6px 8px', borderRadius:4 };
 
 export default UserCollections;

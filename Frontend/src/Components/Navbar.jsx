@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
+import { motion } from 'framer-motion';
 
 const Navbar = () => {
 	const { user, logout } = useAuth();
@@ -21,47 +22,56 @@ const Navbar = () => {
 		});
 
 		return (
-			<header style={bar}>
-				<div style={left}>
-					<Link to="/" style={brand}>PromptVault</Link>
-					<NavLink to="/" style={navLinkStyle} end>Home</NavLink>
-					<NavLink to="/prompts" style={navLinkStyle}>Browse</NavLink>
-					{user && <NavLink to="/prompts/mine" style={navLinkStyle}>My Prompts</NavLink>}
-					<NavLink to="/collections" style={navLinkStyle}>Collections</NavLink>
-					{user && <NavLink to="/collections/mine" style={navLinkStyle}>My Collections</NavLink>}
-					{user && <NavLink to="/profile" style={navLinkStyle}>My Profile</NavLink>}
-				</div>
-				<div style={right}>
-					{user && location.pathname.startsWith('/prompts/mine') && (
-						<Link to="/prompts/mine" state={{ openForm:true }} style={buttonGhost}>+ New Prompt</Link>
-					)}
-					{user && location.pathname.startsWith('/collections/mine') && (
-						<Link to="/collections/mine" state={{ openForm:true }} style={buttonGhost}>+ New Collection</Link>
-					)}
-					{!user && <Link to="/auth" style={buttonPrimary}>Login / Register</Link>}
-					{user && (
-						<div style={{ display:'flex', alignItems:'center', gap:12 }}>
-							<Link to={`/users/${user.id || user._id}`} style={userLink} title="Public profile">
-								<span style={avatar}>{(user.name || user.email || '?').slice(0,1).toUpperCase()}</span>
-								<span>{user.name || user.email}</span>
-							</Link>
-							<button onClick={handleLogout} style={buttonSecondary}>Logout</button>
+			<header className="sticky top-0 z-20 w-full border-b border-[var(--pv-border)] bg-[var(--pv-surface)]/70 backdrop-blur anim-fade-in">
+				<div className="mx-auto max-w-7xl px-4 md:px-6">
+					<div className="flex h-14 items-center justify-between gap-4">
+						<div className="flex items-center gap-4 md:gap-6">
+							<motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: .95 }} transition={{ type: 'spring', stiffness: 260, damping: 18 }}>
+								<Link to="/" className="text-lg font-semibold brand-glow bg-gradient-to-r from-[var(--pv-orange)] to-[var(--pv-saffron)] bg-clip-text text-transparent">PromptVault</Link>
+							</motion.div>
+							<nav className="hidden sm:flex items-center gap-1 text-sm">
+								<NavLink to="/" end className={({isActive}) => `px-2 py-1 rounded-md hover:text-[var(--pv-orange)] transition-colors ${isActive ? 'text-[var(--pv-orange)] font-semibold' : 'text-[var(--pv-text-dim)]'}`}>Home</NavLink>
+								<NavLink to="/prompts" className={({isActive}) => `px-2 py-1 rounded-md hover:text-[var(--pv-orange)] transition-colors ${isActive ? 'text-[var(--pv-orange)] font-semibold' : 'text-[var(--pv-text-dim)]'}`}>Browse</NavLink>
+								{user && <NavLink to="/prompts/mine" className={({isActive}) => `px-2 py-1 rounded-md hover:text-[var(--pv-orange)] transition-colors ${isActive ? 'text-[var(--pv-orange)] font-semibold' : 'text-[var(--pv-text-dim)]'}`}>My Prompts</NavLink>}
+								<NavLink to="/collections" className={({isActive}) => `px-2 py-1 rounded-md hover:text-[var(--pv-orange)] transition-colors ${isActive ? 'text-[var(--pv-orange)] font-semibold' : 'text-[var(--pv-text-dim)]'}`}>Collections</NavLink>
+								{user && <NavLink to="/collections/mine" className={({isActive}) => `px-2 py-1 rounded-md hover:text-[var(--pv-orange)] transition-colors ${isActive ? 'text-[var(--pv-orange)] font-semibold' : 'text-[var(--pv-text-dim)]'}`}>My Collections</NavLink>}
+								{user && <NavLink to="/profile" className={({isActive}) => `px-2 py-1 rounded-md hover:text-[var(--pv-orange)] transition-colors ${isActive ? 'text-[var(--pv-orange)] font-semibold' : 'text-[var(--pv-text-dim)]'}`}>My Profile</NavLink>}
+							</nav>
 						</div>
-					)}
+						<div className="flex items-center gap-3">
+							{user && location.pathname.startsWith('/prompts/mine') && (
+								<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.96 }}>
+									<Link to="/prompts/mine" state={{ openForm:true }} className="btn btn-ghost hidden sm:inline-flex">+ New Prompt</Link>
+								</motion.div>
+							)}
+							{user && location.pathname.startsWith('/collections/mine') && (
+								<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.96 }}>
+									<Link to="/collections/mine" state={{ openForm:true }} className="btn btn-ghost hidden sm:inline-flex">+ New Collection</Link>
+								</motion.div>
+							)}
+							{!user && (
+								<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.96 }}>
+									<Link to="/auth" className="btn btn-primary text-sm">Login / Register</Link>
+								</motion.div>
+							)}
+							{user && (
+								<div className="flex items-center gap-3">
+									<motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.95 }} className="flex">
+										<Link to={`/users/${user.id || user._id}`} className="flex items-center gap-2 text-sm text-[var(--pv-text-dim)] hover:text-[var(--pv-white)]" title="Public profile">
+											<span className="w-8 h-8 rounded-full bg-gradient-to-br from-[var(--pv-orange)] to-[var(--pv-saffron)] text-[var(--pv-black)] flex items-center justify-center font-semibold">
+												{(user.name || user.email || '?').slice(0,1).toUpperCase()}
+											</span>
+											<span className="hidden sm:inline-block max-w-[140px] truncate">{user.name || user.email}</span>
+										</Link>
+									</motion.div>
+									<motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.92 }} onClick={handleLogout} className="btn btn-secondary text-sm px-3 py-1.5">Logout</motion.button>
+								</div>
+							)}
+						</div>
+					</div>
 				</div>
 			</header>
 		);
 };
-
-const bar = { display:'flex', justifyContent:'space-between', padding:'10px 20px', borderBottom:'1px solid #e4e4e4', background:'#fff', position:'sticky', top:0, zIndex:10 };
-const left = { display:'flex', alignItems:'center', gap:16 };
-const right = { display:'flex', alignItems:'center', gap:16 };
-const brand = { fontWeight:600, fontSize:18, textDecoration:'none', color:'#222' };
-const link = { textDecoration:'none', color:'#444', fontSize:14, padding:'4px 6px', borderRadius:4, transition:'background .15s' };
-const buttonPrimary = { background:'#222', color:'#fff', padding:'8px 14px', borderRadius:6, textDecoration:'none', fontSize:14 };
-const buttonSecondary = { background:'#eee', color:'#222', padding:'6px 12px', border:'1px solid #ccc', borderRadius:6, cursor:'pointer' };
-const buttonGhost = { background:'transparent', color:'#222', padding:'6px 12px', border:'1px dashed #999', borderRadius:6, textDecoration:'none', fontSize:14 };
-const userLink = { display:'flex', alignItems:'center', gap:8, textDecoration:'none', color:'#222', fontSize:14 };
-const avatar = { width:32, height:32, borderRadius:'50%', background:'#222', color:'#fff', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, fontWeight:600 };
 
 export default Navbar;

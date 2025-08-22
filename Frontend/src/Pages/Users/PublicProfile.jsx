@@ -4,6 +4,7 @@ import { getUserProfile, getUserPrompts, getUserCollections } from '../../Servic
 import ProfileHeader from '../../Components/User/ProfileHeader.jsx';
 import UserPrompts from '../../Components/User/UserPrompts.jsx';
 import UserCollections from '../../Components/User/UserCollections.jsx';
+import { motion } from 'framer-motion';
 
 const PublicProfile = () => {
   const { id } = useParams();
@@ -39,13 +40,18 @@ const PublicProfile = () => {
   }, [id]);
 
   return (
-    <div style={{ padding:24, maxWidth:960, margin:'0 auto' }}>
+    <motion.div
+      initial={{ opacity:0, y:24 }}
+      animate={{ opacity:1, y:0 }}
+      transition={{ duration:.55, ease:[0.4,0,0.2,1] }}
+      className="px-6 py-8 max-w-5xl mx-auto"
+    >
       <ProfileHeader loading={loadingProfile} error={errorProfile} profile={profile} />
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:32 }}>
+      <div className="grid gap-10 md:grid-cols-2 mt-8">
         <UserPrompts loading={loadingPrompts} error={errorPrompts} prompts={prompts} />
         <UserCollections loading={loadingCollections} error={errorCollections} collections={collections} />
       </div>
-    </div>
+    </motion.div>
   );
 };
 

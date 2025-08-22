@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { listPrompts } from '../../Services/prompt.service';
 import PromptCard from './PromptCard.jsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const PromptList = ({ mine=false }) => {
   const [items, setItems] = useState([]);
@@ -22,38 +23,61 @@ const PromptList = ({ mine=false }) => {
   }, [query, mine, page]);
 
   return (
-    <div>
-      <div style={{ display:'flex', gap:8, marginBottom:12 }}>
-        <input placeholder="Search prompts" value={query} onChange={e=>{ setPage(1); setQuery(e.target.value);} } style={input} />
+    <div className="space-y-6">
+      <div className="flex gap-3 items-center">
+        <input
+          placeholder="Search prompts"
+          value={query}
+          onChange={e=>{ setPage(1); setQuery(e.target.value);} }
+          className="flex-1"
+        />
       </div>
-      {loading && <div>Loading prompts...</div>}
-      {error && <div style={err}>{error}</div>}
-      {!loading && !error && items.length === 0 && <div>No prompts found.</div>}
-      <div style={grid}>
-        {items.map(p => <PromptCard key={p._id || p.id} prompt={p} />)}
-      </div>
+      {loading && (
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 6 }).map((_,i)=>(
+            <div key={i} className="card rounded-xl p-4 shimmer h-36" />
+          ))}
+        </div>
+      )}
+      {error && <div className="form-error">{error}</div>}
+      {!loading && !error && items.length === 0 && (
+        <div className="text-sm text-[var(--pv-text-dim)]">No prompts found.</div>
+      )}
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={page + query + (mine?'-mine':'')}
+          className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+          initial="hidden"
+          animate="show"
+          variants={{ hidden:{}, show:{ transition:{ staggerChildren:.05 } } }}
+        >
+          {items.map(p => <PromptCard key={p._id || p.id} prompt={p} />)}
+        </motion.div>
+      </AnimatePresence>
       <Pagination page={page} limit={limit} total={total} onChange={setPage} />
     </div>
   );
 };
 
 const Pagination = ({ page, limit, total, onChange }) => {
-  const pages = Math.ceil(total / limit) || 1;
-  if (pages <= 1) return null;
+  const pages = Math.ceil(total / limit) || 1; if (pages <= 1) return null;
   return (
-    <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:16 }}>
+    <div className="flex flex-wrap gap-2 pt-2">
       {Array.from({ length: pages }).map((_,i)=>{
-        const n = i+1;
-        return <button key={n} onClick={()=>onChange(n)} disabled={n===page} style={n===page?btnActive:btn}>{n}</button>;
+        const n = i+1; const active = n===page;
+        return (
+          <motion.button
+            key={n}
+            onClick={()=>onChange(n)}
+            whileHover={!active ? { y:-2 } : undefined}
+            whileTap={!active ? { scale:.9 } : undefined}
+            className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${active ? 'bg-[var(--pv-orange)] text-[var(--pv-black)] border-[var(--pv-orange)]' : 'bg-[var(--pv-surface)] border-[var(--pv-border)] text-[var(--pv-text-dim)] hover:text-[var(--pv-white)]'}`}
+            disabled={active}
+          >{n}</motion.button>
+        );
       })}
     </div>
   );
 };
-
-const grid = { display:'grid', gap:16, gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))' };
-const input = { flex:1, padding:'8px 10px', border:'1px solid #ccc', borderRadius:6 };
-const err = { background:'#ffe6e6', color:'#a40000', padding:'6px 8px', borderRadius:4, marginTop:8 };
-const btn = { padding:'6px 10px', border:'1px solid #ccc', background:'#fff', cursor:'pointer', borderRadius:4 };
-const btnActive = { ...btn, background:'#222', color:'#fff' };
 
 export default PromptList;

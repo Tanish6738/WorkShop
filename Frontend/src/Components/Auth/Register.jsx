@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { register, login } from '../../Services/Auth.service';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const Register = ({ switchMode }) => {
 	const [name, setName] = useState('');
@@ -27,26 +28,36 @@ const Register = ({ switchMode }) => {
 	};
 
 	return (
-		<form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-			<label>Name
-				<input value={name} onChange={e => setName(e.target.value)} required style={inputStyle} />
+		<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+			<label>
+				<span className="text-xs uppercase tracking-wide text-[var(--pv-text-dim)]">Name</span>
+				<motion.input whileFocus={{ scale: 1.015, borderColor: 'var(--pv-orange)' }} transition={{ type: 'spring', stiffness: 260, damping: 20 }} value={name} onChange={e => setName(e.target.value)} required className="w-full mt-1" />
 			</label>
-			<label>Email
-				<input type="email" value={email} onChange={e => setEmail(e.target.value)} required style={inputStyle} />
+			<label>
+				<span className="text-xs uppercase tracking-wide text-[var(--pv-text-dim)]">Email</span>
+				<motion.input whileFocus={{ scale: 1.015, borderColor: 'var(--pv-orange)' }} transition={{ type: 'spring', stiffness: 260, damping: 20 }} type="email" value={email} onChange={e => setEmail(e.target.value)} required className="w-full mt-1" />
 			</label>
-			<label>Password
-				<input type="password" value={password} onChange={e => setPassword(e.target.value)} required style={inputStyle} />
+			<label>
+				<span className="text-xs uppercase tracking-wide text-[var(--pv-text-dim)]">Password</span>
+				<motion.input whileFocus={{ scale: 1.015, borderColor: 'var(--pv-orange)' }} transition={{ type: 'spring', stiffness: 260, damping: 20 }} type="password" value={password} onChange={e => setPassword(e.target.value)} required className="w-full mt-1" />
 			</label>
-			{error && <div style={errorStyle}>{error}</div>}
-			<button type="submit" disabled={loading} style={buttonStyle}>{loading ? 'Creating...' : 'Create Account'}</button>
-			<p style={{ fontSize: 14 }}>Have an account? <button type="button" onClick={switchMode} style={linkButton}>Login</button></p>
+			{error && <div className="form-error text-sm">{error}</div>}
+			<motion.button
+				type="submit"
+				disabled={loading}
+				className="btn btn-primary w-full mt-2 disabled:opacity-60"
+				whileHover={{ y: -2 }}
+				whileTap={{ scale: 0.97 }}
+				transition={{ duration: 0.18, ease: 'easeOut' }}
+				aria-busy={loading}
+			>
+				{loading ? 'Creating…' : 'Create Account'}
+			</motion.button>
+			<p className="text-xs text-center text-[var(--pv-text-dim)]">Have an account?{' '}
+				<button type="button" onClick={switchMode} className="text-[var(--pv-orange)] hover:underline font-medium">Login</button>
+			</p>
 		</form>
 	);
 };
-
-const inputStyle = { width: '100%', padding: '8px 10px', marginTop: 4, border: '1px solid #ccc', borderRadius: 4 };
-const buttonStyle = { padding: '10px 14px', background: '#222', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' };
-const linkButton = { background: 'none', border: 'none', padding: 0, margin: 0, color: '#0055cc', cursor: 'pointer' };
-const errorStyle = { background: '#ffe6e6', color: '#a40000', padding: '6px 8px', borderRadius: 4 };
 
 export default Register;

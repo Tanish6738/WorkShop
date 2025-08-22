@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { listCollections } from '../../Services/collection.service';
 import CollectionCard from './CollectionCard.jsx';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const CollectionList = ({ mine=false }) => {
   const [items, setItems] = useState([]);
@@ -20,13 +21,31 @@ const CollectionList = ({ mine=false }) => {
   },[mine,page]);
 
   return (
-    <div>
-      {loading && <div>Loading collections...</div>}
-      {error && <div style={err}>{error}</div>}
-      {!loading && !error && items.length === 0 && <div>No collections found.</div>}
-      <div style={grid}>
-        {items.map(c => <CollectionCard key={c._id || c.id} collection={c} />)}
-      </div>
+    <div className="space-y-6">
+      {loading && (
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 6 }).map((_,i)=>(
+            <div key={i} className="card rounded-xl p-4 shimmer h-32" />
+          ))}
+        </div>
+      )}
+      {error && <div className="form-error">{error}</div>}
+      {!loading && !error && items.length === 0 && (
+        <div className="text-sm text-[var(--pv-text-dim)]">No collections found.</div>
+      )}
+      <AnimatePresence mode="popLayout">
+        <motion.div
+          key={page + (mine?'-mine':'')}
+          className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+          initial="hidden"
+          animate="show"
+          variants={{ hidden:{}, show:{ transition:{ staggerChildren:.05 } } }}
+        >
+          {items.map(c => (
+            <CollectionCard key={c._id || c.id} collection={c} />
+          ))}
+        </motion.div>
+      </AnimatePresence>
       <Pagination page={page} limit={limit} total={total} onChange={setPage} />
     </div>
   );
@@ -34,12 +53,20 @@ const CollectionList = ({ mine=false }) => {
 
 const Pagination = ({ page, limit, total, onChange }) => {
   const pages = Math.ceil(total/limit) || 1; if(pages<=1) return null;
-  return <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:16 }}>{Array.from({ length: pages }).map((_,i)=>{ const n=i+1; return <button key={n} onClick={()=>onChange(n)} disabled={n===page} style={n===page?btnActive:btn}>{n}</button>; })}</div>;
+  return (
+    <div className="flex flex-wrap gap-2 pt-2">
+      {Array.from({ length: pages }).map((_,i)=>{ const n=i+1; const active = n===page; return (
+        <motion.button
+          key={n}
+          onClick={()=>onChange(n)}
+          whileHover={!active ? { y:-2 } : undefined}
+          whileTap={!active ? { scale:.9 } : undefined}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${active ? 'bg-[var(--pv-orange)] text-[var(--pv-black)] border-[var(--pv-orange)]' : 'bg-[var(--pv-surface)] border-[var(--pv-border)] text-[var(--pv-text-dim)] hover:text-[var(--pv-white)]'}`}
+          disabled={active}
+        >{n}</motion.button>
+      ); })}
+    </div>
+  );
 };
-
-const grid = { display:'grid', gap:16, gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', marginTop:12 };
-const err = { background:'#ffe6e6', color:'#a40000', padding:'6px 8px', borderRadius:4 };
-const btn = { padding:'6px 10px', border:'1px solid #ccc', background:'#fff', cursor:'pointer', borderRadius:4 };
-const btnActive = { ...btn, background:'#222', color:'#fff' };
 
 export default CollectionList;

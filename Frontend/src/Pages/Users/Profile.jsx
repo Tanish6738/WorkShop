@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { getMe, updateMe } from '../../Services/Auth.service';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const Profile = () => {
 	const { user, setUser } = useAuth();
@@ -27,45 +28,66 @@ const Profile = () => {
 		finally { setSaving(false); }
 	};
 
-	if (!user) return <div style={{ padding: 24 }}>Loading profile...</div>;
+	if (!user) return <div className="px-6 py-10 text-sm text-[var(--pv-text-dim)]">Loading profile...</div>;
 
 	return (
-		<div style={{ padding: 24, maxWidth: 640 }}>
-			<h1>Profile</h1>
-			{!editing ? (
-				<div style={{ marginTop: 12 }}>
-					{user.avatarUrl && <img src={user.avatarUrl} alt="avatar" style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: '50%' }} />}
-					<p><strong>Name:</strong> {user.name}</p>
-						<p><strong>Email:</strong> {user.email}</p>
-					{user.bio && <p><strong>Bio:</strong> {user.bio}</p>}
-					<button onClick={() => { setForm({ name: user.name || '', bio: user.bio || '', avatarUrl: user.avatarUrl || '' }); setEditing(true); }} style={btn}>Edit Profile</button>
-				</div>
-			) : (
-				<div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 12 }}>
-					<label>Name
-						<input name="name" value={form.name} onChange={onChange} style={input} />
-					</label>
-					<label>Avatar URL
-						<input name="avatarUrl" value={form.avatarUrl} onChange={onChange} style={input} />
-					</label>
-					<label>Bio
-						<textarea name="bio" value={form.bio} onChange={onChange} rows={4} style={textarea} />
-					</label>
-					{error && <div style={errBox}>{error}</div>}
-					<div style={{ display: 'flex', gap: 8 }}>
-						<button onClick={onSave} disabled={saving} style={btn}>{saving ? 'Saving...' : 'Save'}</button>
-						<button onClick={() => setEditing(false)} style={btnSecondary}>Cancel</button>
-					</div>
-				</div>
-			)}
-		</div>
+		<motion.div
+			initial={{ opacity:0, y:24 }}
+			animate={{ opacity:1, y:0 }}
+			transition={{ duration:.55, ease:[0.4,0,0.2,1] }}
+			className="px-6 py-8 max-w-2xl"
+		>
+			<h1 className="text-3xl font-semibold tracking-tight bg-gradient-to-r from-[var(--pv-orange)] to-[var(--pv-saffron)] bg-clip-text text-transparent">Profile</h1>
+			<AnimatePresence mode="wait" initial={false}>
+				{!editing ? (
+					<motion.div key="view" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }} className="mt-6 space-y-4">
+						{user.avatarUrl && (
+							<motion.img
+								src={user.avatarUrl}
+								alt="avatar"
+								className="w-32 h-32 rounded-full object-cover ring-2 ring-[var(--pv-border)]"
+								initial={{ scale:.9, opacity:0 }}
+								animate={{ scale:1, opacity:1 }}
+								transition={{ type:'spring', stiffness:140, damping:18 }}
+							/>
+						)}
+						<div className="text-sm leading-relaxed space-y-1">
+							<p><strong className="text-[var(--pv-white)]">Name:</strong> {user.name}</p>
+							<p><strong className="text-[var(--pv-white)]">Email:</strong> {user.email}</p>
+							{user.bio && <p><strong className="text-[var(--pv-white)]">Bio:</strong> {user.bio}</p>}
+						</div>
+						<motion.button
+							whileHover={{ y:-2 }}
+							whileTap={{ scale:.95 }}
+							onClick={() => { setForm({ name: user.name || '', bio: user.bio || '', avatarUrl: user.avatarUrl || '' }); setEditing(true); }}
+							className="px-4 py-2 rounded-md text-sm font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]"
+						>
+							Edit Profile
+						</motion.button>
+					</motion.div>
+				) : (
+					<motion.div key="edit" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }} className="mt-6 space-y-5">
+						<div className="flex flex-col gap-4 text-sm">
+							<label className="font-medium">Name
+								<input name="name" value={form.name} onChange={onChange} className="mt-1 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60" />
+							</label>
+							<label className="font-medium">Avatar URL
+								<input name="avatarUrl" value={form.avatarUrl} onChange={onChange} className="mt-1 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60" />
+							</label>
+							<label className="font-medium">Bio
+								<textarea name="bio" value={form.bio} onChange={onChange} rows={5} className="mt-1 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60 resize-y" />
+							</label>
+						</div>
+						{error && <div className="form-error text-xs">{error}</div>}
+						<div className="flex gap-3 pt-1">
+							<motion.button whileHover={{ y:-2 }} whileTap={{ scale:.95 }} onClick={onSave} disabled={saving} className="px-4 py-2 rounded-md text-sm font-medium bg-[var(--pv-orange)] text-[var(--pv-black)] hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed">{saving ? 'Saving...' : 'Save'}</motion.button>
+							<motion.button whileHover={{ y:-2 }} whileTap={{ scale:.95 }} onClick={() => setEditing(false)} className="px-4 py-2 rounded-md text-sm font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]">Cancel</motion.button>
+						</div>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</motion.div>
 	);
 };
-
-const btn = { padding: '8px 14px', background: '#222', color: '#fff', border: 'none', borderRadius: 4, cursor: 'pointer' };
-const btnSecondary = { ...btn, background: '#666' };
-const input = { width: '100%', padding: '8px 10px', marginTop: 4, border: '1px solid #ccc', borderRadius: 4 };
-const textarea = { ...input, resize: 'vertical' };
-const errBox = { background: '#ffe6e6', color: '#a40000', padding: '6px 8px', borderRadius: 4 };
 
 export default Profile;

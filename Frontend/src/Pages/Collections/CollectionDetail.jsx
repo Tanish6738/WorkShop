@@ -5,6 +5,7 @@ import { listPrompts } from '../../Services/prompt.service';
 import { useAuth } from '../../context/AuthContext.jsx';
 import PromptCard from '../../Components/Prompt/PromptCard.jsx';
 import CollectionForm from '../../Components/Collection/CollectionForm.jsx';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const CollectionDetail = () => {
   const { id } = useParams();
@@ -52,43 +53,61 @@ const CollectionDetail = () => {
   };
   const handleDelete = async () => { if(!isOwner) return; if(!window.confirm('Delete this collection?')) return; try { await deleteCollection(id); navigate('/collections'); } catch(_){} };
 
-  if(loading) return <div style={{ padding:24 }}>Loading...</div>;
-  if(error) return <div style={{ padding:24 }}>{error}</div>;
-  if(!collection) return <div style={{ padding:24 }}>Not found.</div>;
+  if(loading) return <div className="px-6 py-10 max-w-5xl mx-auto text-sm text-[var(--pv-text-dim)]">Loading...</div>;
+  if(error) return <div className="px-6 py-10 max-w-5xl mx-auto form-error">{error}</div>;
+  if(!collection) return <div className="px-6 py-10 max-w-5xl mx-auto text-sm text-[var(--pv-text-dim)]">Not found.</div>;
 
   return (
-    <div style={{ padding:24, maxWidth:960, margin:'0 auto' }}>
-      {!editing ? (
-        <div>
-          <h1 style={{ marginTop:0 }}>{collection.name}</h1>
-          {collection.description && <p style={{ color:'#555' }}>{collection.description}</p>}
-          <p style={{ fontSize:12, color:'#666' }}>{collection.visibility === 'private' ? 'Private' : 'Public'} • {collection.promptIds?.length||0} prompts</p>
-          {isOwner && <div style={{ display:'flex', gap:8, marginTop:8 }}>
-            <button onClick={()=>setEditing(true)} style={btn}>Edit</button>
-            <button onClick={handleDelete} style={btnDanger}>Delete</button>
-          </div>}
-        </div>
-      ) : (
-        <div style={{ border:'1px solid #eee', padding:16, borderRadius:8 }}>
-          <CollectionForm existing={collection} onSaved={(c)=>{ setCollection(c); setEditing(false); }} onCancel={()=>setEditing(false)} />
-        </div>
-      )}
+    <motion.div
+      initial={{ opacity:0, y:28 }}
+      animate={{ opacity:1, y:0 }}
+      transition={{ duration:.6, ease:[0.4,0,0.2,1] }}
+      className="px-6 py-8 max-w-5xl mx-auto"
+    >
+      <AnimatePresence mode="wait" initial={false}>
+        {!editing ? (
+          <motion.div key="view" initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} transition={{ duration:.4 }} className="mb-6">
+            <h1 className="text-3xl font-semibold tracking-tight bg-gradient-to-r from-[var(--pv-orange)] to-[var(--pv-saffron)] bg-clip-text text-transparent">{collection.name}</h1>
+            {collection.description && <p className="mt-2 text-sm text-[var(--pv-text-dim)] max-w-prose leading-relaxed">{collection.description}</p>}
+            <p className="mt-3 text-xs text-[var(--pv-text-dim)] font-medium flex items-center gap-3">
+              <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--pv-orange)]"/> {collection.visibility === 'private' ? 'Private' : 'Public'}</span>
+              <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--pv-saffron)]"/>{collection.promptIds?.length||0} prompts</span>
+            </p>
+            {isOwner && <div className="flex gap-3 mt-4">
+              <motion.button whileHover={{ y:-2 }} whileTap={{ scale:.95 }} onClick={()=>setEditing(true)} className="px-4 py-2 rounded-md text-sm font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]">Edit</motion.button>
+              <motion.button whileHover={{ y:-2 }} whileTap={{ scale:.95 }} onClick={handleDelete} className="px-4 py-2 rounded-md text-sm font-medium bg-red-600/90 hover:bg-red-600 text-white shadow-sm">Delete</motion.button>
+            </div>}
+          </motion.div>
+        ) : (
+          <motion.div key="edit" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }} transition={{ duration:.4 }} className="mb-8 card border border-[var(--pv-border)] rounded-xl p-5">
+            <CollectionForm existing={collection} onSaved={(c)=>{ setCollection(c); setEditing(false); }} onCancel={()=>setEditing(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
       {isOwner && !editing && (
-        <div style={{ marginTop:24, border:'1px solid #eee', padding:16, borderRadius:8 }}>
-          <h3 style={{ marginTop:0 }}>Add Prompts</h3>
-          <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center' }}>
+        <div className="mt-2 card border border-[var(--pv-border)] rounded-xl p-5">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><span className="w-1.5 h-5 bg-[var(--pv-orange)] rounded"/>Add Prompts</h3>
+          <div className="flex flex-wrap items-center gap-3">
             <input
               placeholder={searchScope==='mine' ? 'Search your prompts...' : 'Search public prompts...'}
               value={search}
               onChange={e=>{ setSearch(e.target.value); setSearchResults([]); setSearchError(null); }}
-              style={input}
+              className="flex-1 min-w-[220px] px-3 py-2 border border-[var(--pv-border)] rounded-md bg-[var(--pv-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60"
             />
-            <div style={{ display:'flex', gap:4 }}>
-              <button type="button" onClick={()=>{ setSearchScope('all'); }} style={searchScope==='all'?scopeBtnActive:scopeBtn}>All Public</button>
-              <button type="button" onClick={()=>{ setSearchScope('mine'); }} style={searchScope==='mine'?scopeBtnActive:scopeBtn}>My</button>
+            <div className="flex gap-1">
+              {['all','mine'].map(scope => (
+                <button
+                  key={scope}
+                  type="button"
+                  onClick={()=> setSearchScope(scope)}
+                  className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${searchScope===scope ? 'bg-[var(--pv-orange)] text-[var(--pv-black)] border-[var(--pv-orange)]' : 'bg-[var(--pv-surface-alt)] border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]'}`}
+                >
+                  {scope==='all' ? 'All Public' : 'My'}
+                </button>
+              ))}
             </div>
           </div>
-          <p style={{ marginTop:6, fontSize:12, color:'#666' }}>Search and add {searchScope==='mine' ? 'your own (public or private)' : 'public'} prompts. Already-added prompts are hidden.</p>
+          <p className="mt-2 text-[11px] text-[var(--pv-text-dim)]">Search and add {searchScope==='mine' ? 'your own (public or private)' : 'public'} prompts. Already-added prompts are hidden.</p>
           <PromptSearchResults
             search={search}
             scope={searchScope}
@@ -103,18 +122,26 @@ const CollectionDetail = () => {
             searchError={searchError}
             debounceRef={debounceRef}
           />
-          <div style={{ marginTop:28 }}>
-            <h4 style={{ margin:'0 0 8px' }}>Browse {browseScope==='mine' ? 'My Prompts' : 'Public Prompts'}</h4>
-            <div style={{ display:'flex', gap:8, flexWrap:'wrap', alignItems:'center', marginBottom:8 }}>
+          <div className="mt-8">
+            <h4 className="text-sm font-semibold mb-3">Browse {browseScope==='mine' ? 'My Prompts' : 'Public Prompts'}</h4>
+            <div className="flex flex-wrap items-center gap-3 mb-3">
               <input
                 placeholder={browseScope==='mine' ? 'Filter my prompts...' : 'Filter public prompts...'}
                 value={browseQuery}
                 onChange={e=>{ setBrowseQuery(e.target.value); setBrowsePage(1);} }
-                style={input}
+                className="flex-1 min-w-[220px] px-3 py-2 border border-[var(--pv-border)] rounded-md bg-[var(--pv-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60"
               />
-              <div style={{ display:'flex', gap:4 }}>
-                <button type="button" onClick={()=>{ setBrowseScope('all'); setBrowsePage(1); }} style={browseScope==='all'?scopeBtnActive:scopeBtn}>All Public</button>
-                <button type="button" onClick={()=>{ setBrowseScope('mine'); setBrowsePage(1); }} style={browseScope==='mine'?scopeBtnActive:scopeBtn}>My</button>
+              <div className="flex gap-1">
+                {['all','mine'].map(scope => (
+                  <button
+                    key={scope}
+                    type="button"
+                    onClick={()=>{ setBrowseScope(scope); setBrowsePage(1); }}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-md border transition-colors ${browseScope===scope ? 'bg-[var(--pv-orange)] text-[var(--pv-black)] border-[var(--pv-orange)]' : 'bg-[var(--pv-surface-alt)] border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]'}`}
+                  >
+                    {scope==='all' ? 'All Public' : 'My'}
+                  </button>
+                ))}
               </div>
             </div>
             <BrowsePromptList
@@ -138,35 +165,34 @@ const CollectionDetail = () => {
           </div>
         </div>
       )}
-      <section style={{ marginTop:32 }}>
-        <h3>Prompts</h3>
-        <div style={grid}>
+      <section className="mt-12">
+        <h3 className="text-lg font-semibold mb-4">Prompts</h3>
+        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
           {collection.promptIds?.map(p => (
-            <div key={p._id || p.id || p} style={{ position:'relative' }}>
-              {/* If populated prompt object present use PromptCard else basic */}
+            <motion.div key={p._id || p.id || p} layout className="relative group">
               {typeof p === 'object' && p.title ? (
                 <PromptCard prompt={p} />
               ) : (
-                <div style={promptShell}>{p.toString()}</div>
+                <div className="p-4 border border-[var(--pv-border)] rounded-lg bg-[var(--pv-surface-alt)] text-[10px] break-all text-[var(--pv-text-dim)]">{p.toString()}</div>
               )}
-              {isOwner && !editing && <button onClick={()=>removePrompt(p._id || p.id || p)} style={removeBtn} title="Remove">×</button>}
-            </div>
+              {isOwner && !editing && (
+                <motion.button
+                  whileHover={{ scale:1.05 }}
+                  whileTap={{ scale:.9 }}
+                  onClick={()=>removePrompt(p._id || p.id || p)}
+                  title="Remove"
+                  className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-red-600 text-white text-sm font-bold flex items-center justify-center shadow-lg shadow-red-900/30"
+                >×</motion.button>
+              )}
+            </motion.div>
           ))}
-          {(!collection.promptIds || collection.promptIds.length===0) && <p style={{ color:'#666' }}>No prompts yet.</p>}
+          {(!collection.promptIds || collection.promptIds.length===0) && <p className="text-sm text-[var(--pv-text-dim)]">No prompts yet.</p>}
         </div>
       </section>
-    </div>
+    </motion.div>
   );
 };
-
-const input = { flex:1, padding:'8px 10px', border:'1px solid #ccc', borderRadius:6 };
-const btn = { padding:'6px 12px', background:'#222', color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:14 };
-const btnDanger = { ...btn, background:'#b00020' };
-const grid = { display:'grid', gap:16, gridTemplateColumns:'repeat(auto-fill,minmax(220px,1fr))', marginTop:12 };
-const promptShell = { padding:16, border:'1px solid #eee', borderRadius:8, background:'#fafafa', fontSize:12, wordBreak:'break-all' };
-const removeBtn = { position:'absolute', top:6, right:6, background:'#b00020', color:'#fff', border:'none', width:24, height:24, borderRadius:'50%', cursor:'pointer', lineHeight:'24px', textAlign:'center', fontWeight:600 };
-const scopeBtn = { padding:'6px 10px', background:'#f5f5f5', color:'#222', border:'1px solid #ccc', borderRadius:4, cursor:'pointer', fontSize:12 };
-const scopeBtnActive = { ...scopeBtn, background:'#222', color:'#fff', borderColor:'#222' };
+// Removed legacy inline style objects in favor of Tailwind + CSS variables.
 
 // Inline component for searching prompts
 const PromptSearchResults = ({ search, scope='all', excludeIds, onAdd, addingPromptId, searchResults, setSearchResults, setSearchLoading, setSearchError, searchLoading, searchError, debounceRef }) => {
@@ -190,21 +216,28 @@ const PromptSearchResults = ({ search, scope='all', excludeIds, onAdd, addingPro
 
   if(!search) return null;
   return (
-    <div style={{ marginTop:12 }}>
-      {searchLoading && <div style={{ fontSize:13 }}>Searching...</div>}
-      {searchError && <div style={errBox}>{searchError}</div>}
-      {!searchLoading && !searchError && searchResults.length === 0 && <div style={{ fontSize:12, color:'#666' }}>No matches.</div>}
-      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+    <div className="mt-4">
+      {searchLoading && <div className="text-[11px] text-[var(--pv-text-dim)]">Searching...</div>}
+      {searchError && <div className="form-error text-xs">{searchError}</div>}
+      {!searchLoading && !searchError && searchResults.length === 0 && <div className="text-[11px] text-[var(--pv-text-dim)]">No matches.</div>}
+      <div className="flex flex-col gap-2 mt-2">
         {searchResults.map(p=>{
           const id = p._id || p.id;
             return (
-              <div key={id} style={resultRow}>
-                <div style={{ flex:1 }}>
-                  <div style={{ fontSize:14, fontWeight:500 }}>{p.title}</div>
-                  <div style={{ fontSize:11, color:'#666' }}>{(p.description || p.content || '').slice(0,100)}</div>
+              <motion.div
+                key={id}
+                initial={{ opacity:0, y:8 }}
+                animate={{ opacity:1, y:0 }}
+                className="flex gap-3 items-start p-3 border border-[var(--pv-border)] rounded-lg bg-[var(--pv-surface-alt)]/60 hover:bg-[var(--pv-surface-alt)] transition-colors"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-medium truncate">{p.title}</div>
+                  <div className="text-[10px] text-[var(--pv-text-dim)] line-clamp-2">{(p.description || p.content || '').slice(0,100)}</div>
                 </div>
-                <button disabled={addingPromptId===id} onClick={()=>onAdd(id)} style={smallBtn}>{addingPromptId===id? 'Adding...':'Add'}</button>
-              </div>
+                <button disabled={addingPromptId===id} onClick={()=>onAdd(id)} className="px-3 py-1.5 text-[11px] font-medium rounded-md bg-[var(--pv-orange)] text-[var(--pv-black)] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed">
+                  {addingPromptId===id? 'Adding...':'Add'}
+                </button>
+              </motion.div>
             );
         })}
       </div>
@@ -232,22 +265,29 @@ const BrowsePromptList = ({ scope='all', query, page, setPage, excludeIds, onAdd
       .finally(()=> setLoading(false));
   },[scope, query, page]);
 
-  if(loading) return <div style={{ fontSize:13 }}>Loading prompts...</div>;
-  if(error) return <div style={errBox}>{error}</div>;
+  if(loading) return <div className="text-[11px] text-[var(--pv-text-dim)]">Loading prompts...</div>;
+  if(error) return <div className="form-error text-xs">{error}</div>;
   return (
     <div>
-      {items.length === 0 && <div style={{ fontSize:12, color:'#666' }}>No prompts.</div>}
-      <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+      {items.length === 0 && <div className="text-[11px] text-[var(--pv-text-dim)]">No prompts.</div>}
+      <div className="flex flex-col gap-2">
         {items.map(p=>{
           const id = p._id || p.id;
           return (
-            <div key={id} style={resultRow}>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:500 }}>{p.title}</div>
-                <div style={{ fontSize:11, color:'#666' }}>{(p.description || p.content || '').slice(0,100)}</div>
+            <motion.div
+              key={id}
+              initial={{ opacity:0, y:8 }}
+              animate={{ opacity:1, y:0 }}
+              className="flex gap-3 items-start p-3 border border-[var(--pv-border)] rounded-lg bg-[var(--pv-surface-alt)]/60 hover:bg-[var(--pv-surface-alt)] transition-colors"
+            >
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium truncate">{p.title}</div>
+                <div className="text-[10px] text-[var(--pv-text-dim)] line-clamp-2">{(p.description || p.content || '').slice(0,100)}</div>
               </div>
-              <button disabled={addingPromptId===id} onClick={()=>onAdd(id)} style={smallBtn}>{addingPromptId===id? 'Adding...':'Add'}</button>
-            </div>
+              <button disabled={addingPromptId===id} onClick={()=>onAdd(id)} className="px-3 py-1.5 text-[11px] font-medium rounded-md bg-[var(--pv-orange)] text-[var(--pv-black)] hover:brightness-110 disabled:opacity-60 disabled:cursor-not-allowed">
+                {addingPromptId===id? 'Adding...':'Add'}
+              </button>
+            </motion.div>
           );
         })}
       </div>
@@ -258,7 +298,20 @@ const BrowsePromptList = ({ scope='all', query, page, setPage, excludeIds, onAdd
 
 const BrowsePagination = ({ page, total, limit, onChange }) => {
   const pages = Math.ceil(total/limit) || 1; if(pages<=1) return null;
-  return <div style={{ display:'flex', gap:4, flexWrap:'wrap', marginTop:12 }}>{Array.from({ length: pages }).map((_,i)=>{ const n=i+1; return <button key={n} onClick={()=>onChange(n)} disabled={n===page} style={n===page?scopeBtnActive:scopeBtn}>{n}</button>; })}</div>;
+  return (
+    <div className="flex flex-wrap gap-2 mt-4">
+      {Array.from({ length: pages }).map((_,i)=>{ const n=i+1; const active = n===page; return (
+        <motion.button
+          key={n}
+          whileHover={{ y:-2 }}
+          whileTap={{ scale:.9 }}
+          disabled={active}
+          onClick={()=>onChange(n)}
+          className={`px-3 py-1.5 rounded-md text-xs font-medium border transition-colors ${active ? 'bg-[var(--pv-orange)] text-[var(--pv-black)] border-[var(--pv-orange)]' : 'bg-[var(--pv-surface-alt)] border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]'}`}
+        >{n}</motion.button>
+      ); })}
+    </div>
+  );
 };
 
 export default CollectionDetail;

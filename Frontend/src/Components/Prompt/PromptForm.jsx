@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPrompt, updatePrompt } from '../../Services/prompt.service';
 import { listCollections, addPromptToCollection } from '../../Services/collection.service';
+import { motion } from 'framer-motion';
 
 const empty = { title:'', description:'', content:'', category:'', tags:'', visibility:'public' };
 
@@ -42,58 +43,68 @@ const PromptForm = ({ existing, onSaved, onCancel, allowCollectionSelect=false }
   };
 
   return (
-    <form onSubmit={submit} style={{ display:'flex', flexDirection:'column', gap:12 }}>
-      <h3 style={{ margin:0 }}>{existing ? 'Edit Prompt' : 'New Prompt'}</h3>
-      <label>Title
-        <input name="title" value={form.title} onChange={change} required style={input} />
-      </label>
-      <label>Description
-        <input name="description" value={form.description} onChange={change} style={input} />
-      </label>
-      <label>Content
-        <textarea name="content" value={form.content} onChange={change} rows={6} required style={textarea} />
-      </label>
-      <div style={{ display:'flex', gap:12 }}>
-        <label style={{ flex:1 }}>Category
-          <input name="category" value={form.category} onChange={change} style={input} />
-        </label>
-        <label style={{ flex:1 }}>Tags (comma)
-          <input name="tags" value={form.tags} onChange={change} style={input} />
-        </label>
+    <motion.form
+      onSubmit={submit}
+      className="flex flex-col gap-4"
+      initial={{ opacity:0, y:24 }}
+      animate={{ opacity:1, y:0 }}
+      transition={{ duration:.45, ease:[0.4,0,0.2,1] }}
+    >
+      <h3 className="m-0 text-lg font-semibold tracking-tight flex items-center gap-2">
+        {existing ? 'Edit Prompt' : 'New Prompt'}
+        {existing && <span className="badge">Edit</span>}
+      </h3>
+      <FormRow label="Title">
+        <motion.input name="title" value={form.title} onChange={change} required className="w-full" whileFocus={{ scale:1.01, borderColor:'var(--pv-orange)' }} transition={{ type:'spring', stiffness:260, damping:20 }} />
+      </FormRow>
+      <FormRow label="Description">
+        <motion.input name="description" value={form.description} onChange={change} className="w-full" whileFocus={{ scale:1.01, borderColor:'var(--pv-orange)' }} transition={{ type:'spring', stiffness:260, damping:20 }} />
+      </FormRow>
+      <FormRow label="Content">
+        <motion.textarea name="content" value={form.content} onChange={change} rows={6} required className="w-full resize-y" whileFocus={{ scale:1.01, borderColor:'var(--pv-orange)' }} transition={{ type:'spring', stiffness:260, damping:20 }} />
+      </FormRow>
+      <div className="flex flex-col md:flex-row gap-4">
+        <FormRow className="flex-1" label="Category">
+          <motion.input name="category" value={form.category} onChange={change} className="w-full" whileFocus={{ scale:1.01, borderColor:'var(--pv-orange)' }} transition={{ type:'spring', stiffness:260, damping:20 }} />
+        </FormRow>
+        <FormRow className="flex-1" label="Tags (comma)">
+          <motion.input name="tags" value={form.tags} onChange={change} className="w-full" placeholder="e.g. chatgpt, code" whileFocus={{ scale:1.01, borderColor:'var(--pv-orange)' }} transition={{ type:'spring', stiffness:260, damping:20 }} />
+        </FormRow>
       </div>
-      <label>Visibility
-        <select name="visibility" value={form.visibility} onChange={change} style={input}>
+      <FormRow label="Visibility">
+        <motion.select name="visibility" value={form.visibility} onChange={change} className="w-full" whileFocus={{ scale:1.01, borderColor:'var(--pv-orange)' }} transition={{ type:'spring', stiffness:260, damping:20 }}>
           <option value="public">Public</option>
           <option value="private">Private</option>
-        </select>
-      </label>
+        </motion.select>
+      </FormRow>
       {!existing && allowCollectionSelect && (
-        <label>Add to Collection (optional)
+        <FormRow label="Add to Collection (optional)">
           {collectionsLoading ? (
-            <div style={{ fontSize:12, color:'#666', marginTop:4 }}>Loading collections...</div>
+            <div className="text-xs text-[var(--pv-text-dim)] mt-1">Loading collections...</div>
           ) : collections.length === 0 ? (
-            <div style={{ fontSize:12, color:'#666', marginTop:4 }}>No collections yet.</div>
+            <div className="text-xs text-[var(--pv-text-dim)] mt-1">No collections yet.</div>
           ) : (
-            <select value={selectedCollection} onChange={e=>setSelectedCollection(e.target.value)} style={input}>
+            <motion.select value={selectedCollection} onChange={e=>setSelectedCollection(e.target.value)} className="w-full" whileFocus={{ scale:1.01, borderColor:'var(--pv-orange)' }} transition={{ type:'spring', stiffness:260, damping:20 }}>
               <option value="">-- None --</option>
               {collections.map(c => <option key={c._id || c.id} value={c._id || c.id}>{c.name}</option>)}
-            </select>
+            </motion.select>
           )}
-        </label>
+        </FormRow>
       )}
-      {error && <div style={err}>{error}</div>}
-      <div style={{ display:'flex', gap:8 }}>
-        <button type="submit" disabled={loading} style={btnPrimary}>{loading ? 'Saving...' : 'Save'}</button>
-        {onCancel && <button type="button" onClick={onCancel} style={btnSecondary}>Cancel</button>}
+      {error && <div className="form-error text-xs">{error}</div>}
+      <div className="flex gap-3 pt-2">
+        <motion.button type="submit" disabled={loading} className="btn btn-primary px-6" whileHover={{ y:-2 }} whileTap={{ scale:.95 }} transition={{ duration:.18, ease:'easeOut' }}>{loading ? 'Saving…' : 'Save'}</motion.button>
+        {onCancel && <motion.button type="button" onClick={onCancel} className="btn btn-secondary" whileHover={{ y:-2 }} whileTap={{ scale:.95 }} transition={{ duration:.18, ease:'easeOut' }}>Cancel</motion.button>}
       </div>
-    </form>
+    </motion.form>
   );
 };
 
-const input = { width:'100%', padding:'8px 10px', marginTop:4, border:'1px solid #ccc', borderRadius:4 };
-const textarea = { ...input, resize:'vertical' };
-const err = { background:'#ffe6e6', color:'#a40000', padding:'6px 8px', borderRadius:4 };
-const btnPrimary = { padding:'8px 14px', background:'#222', color:'#fff', border:'none', borderRadius:4, cursor:'pointer' };
-const btnSecondary = { ...btnPrimary, background:'#666' };
+const FormRow = ({ label, children, className='' }) => (
+  <label className={`flex flex-col gap-1 text-[var(--pv-text-dim)] text-sm ${className}`}>
+    <span className="text-xs uppercase tracking-wide">{label}</span>
+    {children}
+  </label>
+);
 
 export default PromptForm;
