@@ -12,29 +12,28 @@ connectDB();
 
 app.use(morgan('dev'));
 
-// --- CORS CONFIG (custom to avoid silent preflight drops on some hosts) ---
+// --- CORS CONFIG (using official cors middleware for reliable preflights) ---
+// Supports a comma‑separated CLIENT_ORIGIN list and any *.vercel.app frontend deployments.
 const rawOrigins = (process.env.CLIENT_ORIGIN || '')
   .split(',')
   .map(o => o.trim())
   .filter(Boolean);
-const allowedOrigins = rawOrigins.length ? rawOrigins : ['http://localhost:5173'];
-const wildcardVercel = /.vercel.app$/i;
+const fallbackOrigins = ['http://localhost:5173'];
+const staticAllowed = rawOrigins.length ? rawOrigins : fallbackOrigins;
+const vercelRegex = /\.vercel\.app$/i;
 
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    const allowed = allowedOrigins.includes(origin) || wildcardVercel.test(origin);
-    if (allowed) {
-      res.header('Access-Control-Allow-Origin', origin);
-      res.header('Vary', 'Origin');
-    }
-  }
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  if (req.method === 'OPTIONS') return res.sendStatus(204);
-  return next();
-});
+const corsOptions = {
+  origin(origin, callback) {
+    // Allow non-browser / same-origin like server-to-server (no origin header)
+    if (!origin) return callback(null, true);
+    if (staticAllowed.includes(origin) || vercelRegex.test(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  optionsSuccessStatus: 204, // some legacy browsers choke on 200 for preflight
+};
+
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
