@@ -1,6 +1,7 @@
 import api from "../Axios/axios";
 
 const PREFIX = "/prompts";
+const ME_PREFIX = '/me'; // for favorites/likes lists
 
 function normalizeError(error) {
   const resp = error?.response;
@@ -127,6 +128,13 @@ export const incrementView = async (id) => {
   }
 };
 
+// Engagement (like already implemented above); add favorites & aggregate engagement fetch
+export const favoritePrompt = async (id) => { try { const { data } = await api.post(`${PREFIX}/${id}/favorite`); return data; } catch (e){ throw normalizeError(e);} };
+export const unfavoritePrompt = async (id) => { try { const { data } = await api.delete(`${PREFIX}/${id}/favorite`); return data; } catch (e){ throw normalizeError(e);} };
+export const getEngagement = async (id) => { try { const { data } = await api.get(`${PREFIX}/${id}/engagement`); return data; } catch(e){ throw normalizeError(e);} };
+export const listFavorites = async () => { try { const { data } = await api.get(`${ME_PREFIX}/favorites`); return data; } catch(e){ throw normalizeError(e);} };
+export const listLikes = async () => { try { const { data } = await api.get(`${ME_PREFIX}/likes`); return data; } catch(e){ throw normalizeError(e);} };
+
 // Version management
 export const createVersion = async (id, content) => {
   try { const { data } = await api.post(`${PREFIX}/${id}/versions`, { content }); return data; } catch (e) { throw normalizeError(e); }
@@ -155,4 +163,9 @@ export default {
   createVersion,
   restoreVersion,
   deleteVersion,
+  favoritePrompt,
+  unfavoritePrompt,
+  getEngagement,
+  listFavorites,
+  listLikes,
 };

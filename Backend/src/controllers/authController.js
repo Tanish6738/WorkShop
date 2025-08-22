@@ -17,12 +17,8 @@ async function register(req, res) {
     if (existing)
       return error(res, "CONFLICT", "Email already registered", 409);
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ name, email, passwordHash });
-    return respond(
-      res,
-      { id: user._id, email: user.email, name: user.name },
-      201
-    );
+  const user = await User.create({ name, email, passwordHash });
+  return respond(res, { id: user._id, email: user.email, name: user.name, role: user.role, banned: user.banned }, 201);
   } catch (e) {
     return error(res, "SERVER_ERROR", e.message);
   }
@@ -42,7 +38,7 @@ async function login(req, res) {
   res.cookie('accessToken', access, accessOpts);
   res.cookie('token', access, accessOpts);
   res.cookie("refreshToken", refresh, { httpOnly: true, sameSite: "lax", maxAge: 7 * 24 * 3600 * 1000 });
-  return respond(res, { accessToken: access, user: { id: user._id, email: user.email, name: user.name } });
+  return respond(res, { accessToken: access, user: { id: user._id, email: user.email, name: user.name, role: user.role, banned: user.banned } });
   } catch (e) {
     return error(res, "SERVER_ERROR", e.message);
   }
@@ -50,13 +46,7 @@ async function login(req, res) {
 
 async function me(req, res) {
   const user = req.user;
-  return respond(res, {
-    id: user._id,
-    email: user.email,
-    name: user.name,
-    avatarUrl: user.avatarUrl,
-    bio: user.bio,
-  });
+  return respond(res, { id: user._id, email: user.email, name: user.name, avatarUrl: user.avatarUrl, bio: user.bio, role: user.role, banned: user.banned });
 }
 
 async function updateMe(req, res) {
@@ -66,13 +56,7 @@ async function updateMe(req, res) {
     if (avatarUrl !== undefined) req.user.avatarUrl = avatarUrl;
     if (bio !== undefined) req.user.bio = bio;
     await req.user.save();
-    return respond(res, {
-      id: req.user._id,
-      email: req.user.email,
-      name: req.user.name,
-      avatarUrl: req.user.avatarUrl,
-      bio: req.user.bio,
-    });
+  return respond(res, { id: req.user._id, email: req.user.email, name: req.user.name, avatarUrl: req.user.avatarUrl, bio: req.user.bio, role: req.user.role, banned: req.user.banned });
   } catch (e) {
     return error(res, "SERVER_ERROR", e.message);
   }

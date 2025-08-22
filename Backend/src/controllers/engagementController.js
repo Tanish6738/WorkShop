@@ -49,6 +49,25 @@ async function getEngagement(req, res) {
     return error(res, "SERVER_ERROR", e.message);
   }
 }
+async function likePrompt(req, res) {
+  try {
+    const promptId = req.params.id;
+    const exists = await Engagement.findOne({ promptId, userId: req.user._id, type: 'like' });
+    if (!exists) {
+      await Engagement.create({ promptId, userId: req.user._id, type: 'like' });
+      await Prompt.findByIdAndUpdate(promptId, { $inc: { 'stats.likes': 1 } });
+    }
+    return respond(res, { liked: true });
+  } catch (e) { return error(res, 'SERVER_ERROR', e.message); }
+}
+async function unlikePrompt(req, res) {
+  try {
+    const promptId = req.params.id;
+    const deleted = await Engagement.findOneAndDelete({ promptId, userId: req.user._id, type: 'like' });
+    if (deleted) await Prompt.findByIdAndUpdate(promptId, { $inc: { 'stats.likes': -1 } });
+    return respond(res, { liked: false });
+  } catch (e) { return error(res, 'SERVER_ERROR', e.message); }
+}
 async function listFavorites(req, res) {
   try {
     const favs = await Engagement.find({
@@ -82,6 +101,8 @@ module.exports = {
   favoritePrompt,
   unfavoritePrompt,
   getEngagement,
+  likePrompt,
+  unlikePrompt,
   listFavorites,
   listLikes,
 };
