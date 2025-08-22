@@ -33,11 +33,15 @@ async function login(req, res) {
     if (!valid) return error(res, "UNAUTHORIZED", "Invalid credentials", 401);
   const access = signAccessToken(user);
   const refresh = signRefreshToken(user);
-  // Set both legacy 'token' and new 'accessToken' cookies for compatibility
-  const accessOpts = { httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 * 1000 };
+  const isProd = process.env.NODE_ENV === 'production';
+  const crossSite = true; // backend & frontend are on different origins
+  const sameSiteMode = crossSite ? 'none' : (isProd ? 'lax' : 'lax');
+  const secureFlag = isProd || sameSiteMode === 'none';
+  const accessOpts = { httpOnly: true, sameSite: sameSiteMode, secure: secureFlag, maxAge: 15 * 60 * 1000 };
+  const refreshOpts = { httpOnly: true, sameSite: sameSiteMode, secure: secureFlag, maxAge: 7 * 24 * 3600 * 1000 };
   res.cookie('accessToken', access, accessOpts);
-  res.cookie('token', access, accessOpts);
-  res.cookie("refreshToken", refresh, { httpOnly: true, sameSite: "lax", maxAge: 7 * 24 * 3600 * 1000 });
+  res.cookie('token', access, accessOpts); // legacy
+  res.cookie('refreshToken', refresh, refreshOpts);
   return respond(res, { accessToken: access, user: { id: user._id, email: user.email, name: user.name, role: user.role, banned: user.banned } });
   } catch (e) {
     return error(res, "SERVER_ERROR", e.message);
@@ -84,7 +88,11 @@ async function refresh(req, res) {
     const user = await User.findById(payload.sub);
     if (!user) return error(res, "UNAUTHORIZED", "User not found", 401);
   const accessToken = signAccessToken(user);
-  const accessOpts = { httpOnly: true, sameSite: 'lax', maxAge: 15 * 60 * 1000 };
+  const isProd = process.env.NODE_ENV === 'production';
+  const crossSite = true;
+  const sameSiteMode = crossSite ? 'none' : (isProd ? 'lax' : 'lax');
+  const secureFlag = isProd || sameSiteMode === 'none';
+  const accessOpts = { httpOnly: true, sameSite: sameSiteMode, secure: secureFlag, maxAge: 15 * 60 * 1000 };
   res.cookie('accessToken', accessToken, accessOpts);
   res.cookie('token', accessToken, accessOpts);
   return respond(res, { accessToken });
