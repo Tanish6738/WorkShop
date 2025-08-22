@@ -131,6 +131,64 @@ async function listVersions(req, res) {
   }
 }
 
+// Explicitly create a new version (content change only) by original creator
+async function createVersion(req, res) {
+  try {
+    const prompt = await Prompt.findById(req.params.id);
+    if (!prompt) return error(res, 'NOT_FOUND', 'Prompt not found', 404);
+    if (prompt.createdBy.toString() !== req.user._id.toString()) return error(res, 'FORBIDDEN', 'Not allowed', 403);
+    const { content } = req.body;
+    if (!content) return error(res, 'VALIDATION_ERROR', 'Missing content', 400);
+    if (content === prompt.content) return error(res, 'VALIDATION_ERROR', 'Content unchanged', 400);
+    const newVersionNumber = (prompt.versions[prompt.versions.length - 1]?.versionNumber || 0) + 1;
+    prompt.content = content;
+    prompt.versions.push({ versionNumber: newVersionNumber, content, updatedBy: req.user._id });
+    await prompt.save();
+    return respond(res, { versionNumber: newVersionNumber });
+  } catch (e) { return error(res, 'SERVER_ERROR', e.message); }
+}
+
+// Restore an earlier version by duplicating it as a new latest version
+async function restoreVersion(req, res) {
+  try {
+    const { id, versionNumber } = req.params;
+    const prompt = await Prompt.findById(id);
+    if (!prompt) return error(res, 'NOT_FOUND', 'Prompt not found', 404);
+    if (prompt.createdBy.toString() !== req.user._id.toString()) return error(res, 'FORBIDDEN', 'Not allowed', 403);
+    const version = prompt.versions.find(v => v.versionNumber === parseInt(versionNumber));
+    if (!version) return error(res, 'NOT_FOUND', 'Version not found', 404);
+    const newVersionNumber = (prompt.versions[prompt.versions.length - 1]?.versionNumber || 0) + 1;
+    prompt.content = version.content;
+    prompt.versions.push({ versionNumber: newVersionNumber, content: version.content, updatedBy: req.user._id });
+    await prompt.save();
+    return respond(res, { restoredTo: parseInt(versionNumber), newVersionNumber });
+  } catch (e) { return error(res, 'SERVER_ERROR', e.message); }
+}
+
+// Delete a specific version (cannot delete if it is the only version)
+async function deleteVersion(req, res) {
+  try {
+    const { id, versionNumber } = req.params;
+    const vn = parseInt(versionNumber);
+    const prompt = await Prompt.findById(id);
+    if (!prompt) return error(res, 'NOT_FOUND', 'Prompt not found', 404);
+    if (prompt.createdBy.toString() !== req.user._id.toString()) return error(res, 'FORBIDDEN', 'Not allowed', 403);
+    if (prompt.versions.length === 1) return error(res, 'FORBIDDEN', 'Cannot delete the only version', 403);
+    const idx = prompt.versions.findIndex(v => v.versionNumber === vn);
+    if (idx === -1) return error(res, 'NOT_FOUND', 'Version not found', 404);
+    const latestNumber = prompt.versions[prompt.versions.length - 1].versionNumber;
+    // If deleting latest version, set current content to previous version's content
+    const deletingLatest = vn === latestNumber;
+    prompt.versions.splice(idx, 1);
+    if (deletingLatest) {
+      const newLatest = prompt.versions[prompt.versions.length - 1];
+      prompt.content = newLatest.content;
+    }
+    await prompt.save();
+    return respond(res, { deleted: true, versionNumber: vn });
+  } catch (e) { return error(res, 'SERVER_ERROR', e.message); }
+}
+
 async function getVersion(req, res) {
   try {
     const { id, versionNumber } = req.params;
@@ -281,4 +339,7 @@ module.exports = {
   remixPrompt,
   listRemixes,
   incrementView,
+  createVersion,
+  restoreVersion,
+  deleteVersion,
 };

@@ -127,6 +127,17 @@ export const incrementView = async (id) => {
   }
 };
 
+// Version management
+export const createVersion = async (id, content) => {
+  try { const { data } = await api.post(`${PREFIX}/${id}/versions`, { content }); return data; } catch (e) { throw normalizeError(e); }
+};
+export const restoreVersion = async (id, versionNumber) => {
+  try { const { data } = await api.post(`${PREFIX}/${id}/versions/${versionNumber}/restore`); return data; } catch (e) { throw normalizeError(e); }
+};
+export const deleteVersion = async (id, versionNumber) => {
+  try { const { data } = await api.delete(`${PREFIX}/${id}/versions/${versionNumber}`); return data; } catch (e) { throw normalizeError(e); }
+};
+
 export default {
   createPrompt,
   listPrompts,
@@ -141,4 +152,7 @@ export default {
   remixPrompt,
   listRemixes,
   incrementView,
+  createVersion,
+  restoreVersion,
+  deleteVersion,
 };

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getPrompt, listVersions, likePrompt, unlikePrompt, incrementView, listRemixes, remixPrompt, deletePrompt } from '../../Services/prompt.service';
+import { getPrompt, listVersions, likePrompt, unlikePrompt, incrementView, listRemixes, remixPrompt, deletePrompt, createVersion, restoreVersion, deleteVersion } from '../../Services/prompt.service';
 import { listCollections, addPromptToCollection } from '../../Services/collection.service';
 import PromptForm from '../../Components/Prompt/PromptForm.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
@@ -30,6 +30,15 @@ const PromptDetail = () => {
   const [remixTitle, setRemixTitle] = useState('');
   const [remixCollection, setRemixCollection] = useState('');
   const [remixError, setRemixError] = useState(null);
+  // Version management state
+  const [showVersionsPanel, setShowVersionsPanel] = useState(false);
+  const [selectedVersion, setSelectedVersion] = useState(null); // object
+  const [versionContent, setVersionContent] = useState('');
+  const [versionLoading, setVersionLoading] = useState(false);
+  const [versionError, setVersionError] = useState(null);
+  const [creatingVersion, setCreatingVersion] = useState(false);
+  const [restoringVersion, setRestoringVersion] = useState(false);
+  const [deletingVersion, setDeletingVersion] = useState(false);
 
   const load = useCallback(()=>{
     setLoading(true); setError(null);
@@ -47,6 +56,17 @@ const PromptDetail = () => {
   useEffect(() => { load(); }, [load]);
 
   const isOwner = user && prompt && (prompt.createdBy === user.id || prompt.createdBy === user._id);
+
+  const reloadVersions = async (preserveSelection=false) => {
+    try {
+      const v = await listVersions(id);
+      setVersions(v.data);
+      if(preserveSelection && selectedVersion){
+        const match = v.data.find(x=> x.versionNumber === selectedVersion.versionNumber);
+        if(!match) setSelectedVersion(null);
+      }
+    } catch(_){}
+  };
 
   const toggleLike = async () => {
     if (!user || liking) return;
@@ -121,9 +141,46 @@ const PromptDetail = () => {
             <button onClick={toggleLike} disabled={!user || liking} style={btn}>{likeState ? 'Unlike' : 'Like'} ({prompt.stats?.likes ?? 0})</button>
             <button onClick={toggleRemixPanel} disabled={!user} style={btn}>{showRemixPanel ? 'Cancel Remix' : 'Remix'}</button>
             <button onClick={toggleAddPanel} disabled={!user} style={btn}>{showAddPanel ? 'Cancel Add' : 'Add to Collection'}</button>
+            <button onClick={()=> setShowVersionsPanel(s=> !s)} style={btn}>{showVersionsPanel ? 'Close Versions' : 'Manage Versions'}</button>
+            {isOwner && <button onClick={()=> { // quick new version shortcut
+              // Ensure versions panel open and content primed for editing
+              if (!showVersionsPanel) setShowVersionsPanel(true);
+              // Select latest version (if any) and load current content into editor so user can modify and save
+              if (versions && versions.length) {
+                const latest = versions[versions.length - 1];
+                setSelectedVersion(latest);
+              }
+              setVersionContent(prompt.content || '');
+              setVersionError(null);
+            }} style={btn}>New Version</button>}
             {isOwner && <button onClick={()=>setEditing(true)} style={btn}>Edit</button>}
             {isOwner && <button onClick={doDelete} style={btnDanger}>Delete</button>}
           </div>
+          {showVersionsPanel && (
+            <div style={panel}>
+              <h4 style={panelTitle}>Versions</h4>
+              <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:8 }}>
+                {versions.map(v => (
+                  <button key={v.versionNumber} onClick={()=> { setSelectedVersion(v); setVersionContent(v.content); setVersionError(null); }} style={selectedVersion?.versionNumber===v.versionNumber ? btnChipActive : btnChip}>v{v.versionNumber}</button>
+                ))}
+              </div>
+              {selectedVersion && (
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                    <strong style={{ fontSize:13 }}>Version v{selectedVersion.versionNumber}</strong>
+                    <div style={{ display:'flex', gap:8 }}>
+                      {isOwner && <button disabled={restoringVersion} onClick={async ()=>{ setVersionError(null); setRestoringVersion(true); try { await restoreVersion(id, selectedVersion.versionNumber); await reloadVersions(); } catch(e){ setVersionError(e?.error?.message||'Restore failed'); } finally { setRestoringVersion(false);} }} style={btnSmall}>{restoringVersion? 'Restoring...':'Restore as New'}</button>}
+                      {isOwner && versions.length>1 && selectedVersion.versionNumber !== versions[versions.length-1].versionNumber && <button disabled={deletingVersion} onClick={async ()=>{ if(!window.confirm('Delete version?')) return; setVersionError(null); setDeletingVersion(true); try { await deleteVersion(id, selectedVersion.versionNumber); await reloadVersions(true); } catch(e){ setVersionError(e?.error?.message||'Delete failed'); } finally { setDeletingVersion(false);} }} style={btnSecondarySmall}>{deletingVersion? 'Deleting...':'Delete'}</button>}
+                    </div>
+                  </div>
+                  <textarea value={versionContent} onChange={e=> setVersionContent(e.target.value)} rows={8} style={textareaFull} readOnly={!isOwner} />
+                  {isOwner && <button disabled={creatingVersion || versionContent===prompt.content} onClick={async ()=>{ setVersionError(null); if(!versionContent.trim() || versionContent===prompt.content) { setVersionError('Change content to create a new version'); return; } setCreatingVersion(true); try { await createVersion(id, versionContent); await reloadVersions(); } catch(e){ setVersionError(e?.error?.message||'Create version failed'); } finally { setCreatingVersion(false);} }} style={btnSmall}>{creatingVersion? 'Creating...':'Create New Version'}</button>}
+                  {versionError && <div style={errorBox}>{versionError}</div>}
+                </div>
+              )}
+              {!selectedVersion && <div style={panelInfo}>Select a version to inspect or restore.</div>}
+            </div>
+          )}
           {showAddPanel && user && (
             <div style={panel}>
               <h4 style={panelTitle}>Add to Collection</h4>
@@ -197,5 +254,8 @@ const inputFull = { ...select, width:'100%' };
 const btnSmall = { padding:'6px 12px', background:'#222', color:'#fff', border:'none', borderRadius:6, cursor:'pointer', fontSize:13 };
 const btnSecondarySmall = { ...btnSmall, background:'#777' };
 const errorBox = { background:'#ffe6e6', color:'#a40000', fontSize:12, padding:'6px 8px', borderRadius:4 };
+const btnChip = { padding:'4px 8px', background:'#eee', border:'none', borderRadius:4, cursor:'pointer', fontSize:12 };
+const btnChipActive = { ...btnChip, background:'#222', color:'#fff' };
+const textareaFull = { width:'100%', minHeight:160, padding:12, border:'1px solid #ccc', borderRadius:6, fontFamily:'inherit', fontSize:13, lineHeight:1.4 };
 
 export default PromptDetail;

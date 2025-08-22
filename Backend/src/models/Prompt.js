@@ -37,5 +37,12 @@ const promptSchema = new Schema(
 );
 
 promptSchema.index({ title: "text", description: "text", content: "text" });
+// Additional performance indexes
+promptSchema.index({ createdBy: 1, visibility: 1, createdAt: -1 });
+promptSchema.index({ originalPromptId: 1 });
+promptSchema.index({ category: 1 });
+promptSchema.index({ 'stats.likes': -1 });
+promptSchema.index({ 'stats.views': -1 });
+promptSchema.index({ 'stats.remixes': -1 });
 
 module.exports = mongoose.model("Prompt", promptSchema);
