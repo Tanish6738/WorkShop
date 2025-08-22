@@ -27,11 +27,16 @@ const Navbar = () => {
 					<NavLink to="/" style={navLinkStyle} end>Home</NavLink>
 					<NavLink to="/prompts" style={navLinkStyle}>Browse</NavLink>
 					{user && <NavLink to="/prompts/mine" style={navLinkStyle}>My Prompts</NavLink>}
+					<NavLink to="/collections" style={navLinkStyle}>Collections</NavLink>
+					{user && <NavLink to="/collections/mine" style={navLinkStyle}>My Collections</NavLink>}
 					{user && <NavLink to="/profile" style={navLinkStyle}>My Profile</NavLink>}
 				</div>
 				<div style={right}>
 					{user && location.pathname.startsWith('/prompts/mine') && (
 						<Link to="/prompts/mine" state={{ openForm:true }} style={buttonGhost}>+ New Prompt</Link>
+					)}
+					{user && location.pathname.startsWith('/collections/mine') && (
+						<Link to="/collections/mine" state={{ openForm:true }} style={buttonGhost}>+ New Collection</Link>
 					)}
 					{!user && <Link to="/auth" style={buttonPrimary}>Login / Register</Link>}
 					{user && (

@@ -23,7 +23,7 @@ const MyPrompts = () => {
         <button onClick={()=>setShowForm(s=>!s)} style={btnPrimary}>{showForm ? 'Close' : 'New Prompt'}</button>
       </div>
       {showForm && <div style={{ margin:'16px 0', padding:16, border:'1px solid #eee', borderRadius:8 }}>
-        <PromptForm onSaved={()=>{ setShowForm(false); setNonce(n=>n+1); }} />
+        <PromptForm allowCollectionSelect onSaved={()=>{ setShowForm(false); setNonce(n=>n+1); }} />
       </div>}
       <PromptList key={nonce} mine />
     </div>
