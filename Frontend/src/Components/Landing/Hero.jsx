@@ -173,13 +173,13 @@ export default function Hero() {
           className="flex flex-col sm:flex-row gap-4"
         >
           <a
-            href="#signup"
+            href="/auth"
             className="group relative inline-flex items-center justify-center px-8 py-3 rounded-2xl font-semibold text-white bg-gradient-to-br from-[var(--pv-orange)] to-[var(--pv-saffron)]  transition "
           >
             <span className="relative z-10">Get Started</span>
           </a>
           <a
-            href="#features"
+            href="/prompts"
             className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-semibold text-[var(--pv-saffron)] bg-[var(--pv-saffron)]/10 hover:bg-[var(--pv-saffron)]/15 ring-1 ring-[var(--pv-saffron)]/40 backdrop-blur-sm transition"
           >
             Explore Prompts

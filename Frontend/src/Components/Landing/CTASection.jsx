@@ -42,7 +42,7 @@ export default function CTASection() {
             </Link>
           </motion.div>
           <motion.a
-            href="#features"
+            href="/prompts"
             whileHover={{ y: -4 }}
             whileTap={{ scale: 0.94 }}
             className="inline-flex items-center justify-center px-8 py-3 rounded-2xl font-semibold text-[var(--pv-saffron)] bg-[var(--pv-saffron)]/10 hover:bg-[var(--pv-saffron)]/15 ring-1 ring-[var(--pv-saffron)]/40 backdrop-blur-sm transition"
