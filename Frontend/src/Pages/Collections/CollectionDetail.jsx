@@ -6,6 +6,7 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import PromptCard from '../../Components/Prompt/PromptCard.jsx';
 import CollectionForm from '../../Components/Collection/CollectionForm.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
+import { PenLine, Trash2, PlusCircle, Search, Layers3, Eye, EyeOff, X } from 'lucide-react';
 
 const CollectionDetail = () => {
   const { id } = useParams();
@@ -58,42 +59,48 @@ const CollectionDetail = () => {
   if(!collection) return <div className="px-6 py-10 max-w-5xl mx-auto text-sm text-[var(--pv-text-dim)]">Not found.</div>;
 
   return (
-    <motion.div
-      initial={{ opacity:0, y:28 }}
-      animate={{ opacity:1, y:0 }}
-      transition={{ duration:.6, ease:[0.4,0,0.2,1] }}
-      className="px-6 py-8 max-w-5xl mx-auto"
-    >
+    <main aria-labelledby="collection-heading" className="relative px-5 md:px-6 py-8 max-w-5xl mx-auto">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute -top-24 left-1/2 -translate-x-1/2 w-[55rem] h-[55rem] bg-[radial-gradient(circle_at_center,var(--pv-orange)_0%,transparent_70%)] opacity-[0.04]" />
+      </div>
+      <motion.div initial={{ opacity:0, y:28 }} animate={{ opacity:1, y:0 }} transition={{ duration:.6, ease:[0.4,0,0.2,1] }}>
       <AnimatePresence mode="wait" initial={false}>
         {!editing ? (
           <motion.div key="view" initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-10 }} transition={{ duration:.4 }} className="mb-6">
-            <h1 className="text-3xl font-semibold tracking-tight bg-gradient-to-r from-[var(--pv-orange)] to-[var(--pv-saffron)] bg-clip-text text-transparent">{collection.name}</h1>
-            {collection.description && <p className="mt-2 text-sm text-[var(--pv-text-dim)] max-w-prose leading-relaxed">{collection.description}</p>}
-            <p className="mt-3 text-xs text-[var(--pv-text-dim)] font-medium flex items-center gap-3">
-              <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--pv-orange)]"/> {collection.visibility === 'private' ? 'Private' : 'Public'}</span>
-              <span className="inline-flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-[var(--pv-saffron)]"/>{collection.promptIds?.length||0} prompts</span>
-            </p>
-            {isOwner && <div className="flex gap-3 mt-4">
-              <motion.button whileHover={{ y:-2 }} whileTap={{ scale:.95 }} onClick={()=>setEditing(true)} className="px-4 py-2 rounded-md text-sm font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]">Edit</motion.button>
-              <motion.button whileHover={{ y:-2 }} whileTap={{ scale:.95 }} onClick={handleDelete} className="px-4 py-2 rounded-md text-sm font-medium bg-red-600/90 hover:bg-red-600 text-white shadow-sm">Delete</motion.button>
+            <header className="space-y-4">
+              <h1 id="collection-heading" className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-[var(--pv-orange)] to-[var(--pv-saffron)] bg-clip-text text-transparent flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center justify-center h-12 w-12 rounded-xl bg-[var(--pv-surface-alt)] border border-[var(--pv-border)]"><Layers3 className="h-6 w-6 text-[var(--pv-orange)]" /></span>
+                {collection.name}
+                {collection.visibility === 'private' && <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-[var(--pv-text-dim)] uppercase tracking-wide inline-flex items-center gap-1"><EyeOff className="h-3.5 w-3.5" /> Private</span>}
+                {collection.visibility !== 'private' && <span className="px-2 py-1 rounded-md text-[10px] font-medium bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-[var(--pv-text-dim)] uppercase tracking-wide inline-flex items-center gap-1"><Eye className="h-3.5 w-3.5" /> Public</span>}
+              </h1>
+              {collection.description && <p className="mt-1 text-sm md:text-base text-[var(--pv-text-dim)] leading-relaxed max-w-prose">{collection.description}</p>}
+              <ul className="flex flex-wrap gap-4 text-[11px] font-medium text-[var(--pv-text-dim)]">
+                <li className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)]/60"><span className="text-[var(--pv-text)]">{collection.promptIds?.length||0}</span>Prompts</li>
+              </ul>
+            </header>
+            {isOwner && <div className="flex flex-wrap gap-3 mt-4">
+              <motion.button whileHover={{ y:-2 }} whileTap={{ scale:.94 }} onClick={()=>setEditing(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]"><PenLine className="h-4 w-4" /> Edit</motion.button>
+              <motion.button whileHover={{ y:-2 }} whileTap={{ scale:.94 }} onClick={handleDelete} className="inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-red-600/90 hover:bg-red-600 text-white shadow-sm"><Trash2 className="h-4 w-4" /> Delete</motion.button>
             </div>}
           </motion.div>
         ) : (
-          <motion.div key="edit" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }} transition={{ duration:.4 }} className="mb-8 card border border-[var(--pv-border)] rounded-xl p-5">
+          <motion.div key="edit" initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:-8 }} transition={{ duration:.4 }} className="mb-8 card border border-[var(--pv-border)] rounded-xl p-6 bg-[var(--pv-surface)]/60 backdrop-blur-sm">
             <CollectionForm existing={collection} onSaved={(c)=>{ setCollection(c); setEditing(false); }} onCancel={()=>setEditing(false)} />
           </motion.div>
         )}
       </AnimatePresence>
       {isOwner && !editing && (
-        <div className="mt-2 card border border-[var(--pv-border)] rounded-xl p-5">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><span className="w-1.5 h-5 bg-[var(--pv-orange)] rounded"/>Add Prompts</h3>
-          <div className="flex flex-wrap items-center gap-3">
+        <div className="mt-2 card border border-[var(--pv-border)] rounded-xl p-5 bg-[var(--pv-surface)]/60 backdrop-blur-sm">
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2"><span className="w-1.5 h-5 bg-[var(--pv-orange)] rounded"/><PlusCircle className="h-5 w-5 text-[var(--pv-orange)]" /> Add Prompts</h3>
+          <div className="flex flex-wrap items-center gap-3 w-full">
             <input
               placeholder={searchScope==='mine' ? 'Search your prompts...' : 'Search public prompts...'}
               value={search}
               onChange={e=>{ setSearch(e.target.value); setSearchResults([]); setSearchError(null); }}
-              className="flex-1 min-w-[220px] px-3 py-2 border border-[var(--pv-border)] rounded-md bg-[var(--pv-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60"
+              className="flex-1 min-w-[220px] px-3 py-2 pl-9 border border-[var(--pv-border)] rounded-md bg-[var(--pv-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60 relative"
             />
+            <Search className="h-4 w-4 text-[var(--pv-text-dim)] -ml-14 pointer-events-none" aria-hidden="true" />
             <div className="flex gap-1">
               {['all','mine'].map(scope => (
                 <button
@@ -123,14 +130,15 @@ const CollectionDetail = () => {
             debounceRef={debounceRef}
           />
           <div className="mt-8">
-            <h4 className="text-sm font-semibold mb-3">Browse {browseScope==='mine' ? 'My Prompts' : 'Public Prompts'}</h4>
-            <div className="flex flex-wrap items-center gap-3 mb-3">
+            <h4 className="text-sm font-semibold mb-3 flex items-center gap-2"><Layers3 className="h-4 w-4" /> Browse {browseScope==='mine' ? 'My Prompts' : 'Public Prompts'}</h4>
+            <div className="flex flex-wrap items-center gap-3 mb-3 w-full">
               <input
                 placeholder={browseScope==='mine' ? 'Filter my prompts...' : 'Filter public prompts...'}
                 value={browseQuery}
                 onChange={e=>{ setBrowseQuery(e.target.value); setBrowsePage(1);} }
-                className="flex-1 min-w-[220px] px-3 py-2 border border-[var(--pv-border)] rounded-md bg-[var(--pv-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60"
+                className="flex-1 min-w-[220px] px-3 py-2 pl-9 border border-[var(--pv-border)] rounded-md bg-[var(--pv-surface-alt)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60 relative"
               />
+              <Search className="h-4 w-4 text-[var(--pv-text-dim)] -ml-14 pointer-events-none" aria-hidden="true" />
               <div className="flex gap-1">
                 {['all','mine'].map(scope => (
                   <button
@@ -165,8 +173,8 @@ const CollectionDetail = () => {
           </div>
         </div>
       )}
-      <section className="mt-12">
-        <h3 className="text-lg font-semibold mb-4">Prompts</h3>
+      <section className="mt-12" aria-labelledby="collection-prompts-heading">
+        <h3 id="collection-prompts-heading" className="text-lg font-semibold mb-4 inline-flex items-center gap-2"><Layers3 className="h-5 w-5" /> Prompts</h3>
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3">
           {collection.promptIds?.map(p => (
             <motion.div key={p._id || p.id || p} layout className="relative group">
@@ -181,15 +189,19 @@ const CollectionDetail = () => {
                   whileTap={{ scale:.9 }}
                   onClick={()=>removePrompt(p._id || p.id || p)}
                   title="Remove"
-                  className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-red-600 text-white text-sm font-bold flex items-center justify-center shadow-lg shadow-red-900/30"
-                >×</motion.button>
+                  className="absolute -top-2 -right-2 inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-600 text-white shadow-lg shadow-red-900/30 border border-red-400/40"
+                >
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Remove prompt from collection</span>
+                </motion.button>
               )}
             </motion.div>
           ))}
           {(!collection.promptIds || collection.promptIds.length===0) && <p className="text-sm text-[var(--pv-text-dim)]">No prompts yet.</p>}
         </div>
       </section>
-    </motion.div>
+      </motion.div>
+    </main>
   );
 };
 // Removed legacy inline style objects in favor of Tailwind + CSS variables.

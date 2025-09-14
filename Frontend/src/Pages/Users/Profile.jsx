@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useAuth } from "../../context/AuthContext.jsx";
 import { getMe, updateMe } from "../../Services/Auth.service";
 import { motion, AnimatePresence } from "framer-motion";
+import { PenLine, Save, XCircle, Upload, ImageOff, RefreshCcw, Eraser, Search, ArrowUpAZ, ArrowDownAZ, Layers3 } from "lucide-react";
 import { getUserPrompts, getUserCollections } from "../../Services/User.service";
 import UserPrompts from "../../Components/User/UserPrompts.jsx";
 import UserCollections from "../../Components/User/UserCollections.jsx";
@@ -115,17 +116,20 @@ const Profile = () => {
 
   const ContentControls = () => (
     <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between mb-5">
-      <div className="flex gap-2 flex-1">
-        <input value={filter} onChange={e=>{setFilter(e.target.value); setVisiblePrompts(6); setVisibleCollections(6);}} placeholder="Search my content" className="flex-1 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/50" />
-        <select value={sortField} onChange={e=>setSortField(e.target.value)} className="px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs focus:outline-none">
+      <div className="flex gap-2 flex-1 items-stretch">
+        <div className="flex flex-1 items-center gap-2 px-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] focus-within:ring-2 focus-within:ring-[var(--pv-orange)]/40 transition">
+          <Search className="h-3.5 w-3.5 text-[var(--pv-text-dim)]" />
+          <input value={filter} onChange={e=>{setFilter(e.target.value); setVisiblePrompts(6); setVisibleCollections(6);}} placeholder="Search my content" className="flex-1 py-2 bg-transparent text-xs focus:outline-none" />
+        </div>
+        <select value={sortField} onChange={e=>setSortField(e.target.value)} className="px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/40">
           <option value="createdAt">Newest</option>
           <option value="title">Title</option>
           <option value="likes">Likes</option>
         </select>
-        <button onClick={()=>setSortDir(d=> d==='asc'?'desc':'asc')} className="px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs hover:bg-[var(--pv-surface-hover)]">{sortDir==='asc'? '↑':'↓'}</button>
+        <button onClick={()=>setSortDir(d=> d==='asc'?'desc':'asc')} className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs hover:bg-[var(--pv-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/40" aria-label="Toggle sort direction">{sortDir==='asc'? <ArrowUpAZ className='h-3.5 w-3.5' />:<ArrowDownAZ className='h-3.5 w-3.5' />}</button>
       </div>
       <div className="flex items-center gap-2 text-[10px] text-[var(--pv-text-dim)]">
-        <span>{filteredPrompts.length} prompts</span>
+        <span className="inline-flex items-center gap-1"><Layers3 className="h-3.5 w-3.5" /> {filteredPrompts.length} prompts</span>
         <span>•</span>
         <span>{filteredCollections.length} collections</span>
       </div>
@@ -190,13 +194,8 @@ const Profile = () => {
               </div>
             </div>
             {!editing && (
-              <motion.button
-                whileHover={{ y: -3 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={startEditing}
-                className="self-start sm:self-auto px-4 py-2 rounded-md text-sm font-medium bg-[var(--pv-orange)] text-[var(--pv-black)] shadow hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60"
-              >
-                Edit
+              <motion.button whileHover={{ y: -3 }} whileTap={{ scale: 0.95 }} onClick={startEditing} className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium bg-[var(--pv-orange)] text-[var(--pv-black)] shadow hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60">
+                <PenLine className="h-4 w-4" /> Edit
               </motion.button>
             )}
           </div>
@@ -271,8 +270,8 @@ const Profile = () => {
                     className="w-full px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/60 text-sm"
                   />
                   <div className="mt-2 flex flex-wrap gap-2 text-[10px]">
-                    <button type="button" onClick={triggerFile} className="px-2 py-1 rounded bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]">Upload</button>
-                    <button type="button" onClick={clearAvatar} className="px-2 py-1 rounded bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]">Clear</button>
+                    <button type="button" onClick={triggerFile} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]"><Upload className="h-3.5 w-3.5" /> Upload</button>
+                    <button type="button" onClick={clearAvatar} className="inline-flex items-center gap-1 px-2 py-1 rounded bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]"><ImageOff className="h-3.5 w-3.5" /> Clear</button>
                   </div>
                   <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={onFileChange} />
                   {form.avatarUrl && (
@@ -280,7 +279,7 @@ const Profile = () => {
                       {!avatarError ? (
                         <img src={form.avatarUrl} alt="preview" onError={() => setAvatarError(true)} className="w-24 h-24 object-cover rounded-full border border-[var(--pv-border)] ring-1 ring-[var(--pv-border)]/40" />
                       ) : (
-                        <div className="w-24 h-24 flex items-center justify-center text-[10px] bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] rounded-full text-[var(--pv-text-dim)]">Invalid image</div>
+                        <div className="w-24 h-24 flex flex-col gap-1 items-center justify-center text-[10px] bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] rounded-full text-[var(--pv-text-dim)]"><ImageOff className="h-4 w-4" /> Invalid</div>
                       )}
                     </motion.div>
                   )}
@@ -313,25 +312,14 @@ const Profile = () => {
               )}
               <div className="flex flex-wrap gap-3 pt-1 items-center">
                 <div className="flex gap-2 order-2 sm:order-1">
-                  <button type="button" onClick={resetChanges} disabled={!hasChanges()} className="px-3 py-1 rounded-md text-[10px] font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)] disabled:opacity-40">Reset</button>
-                  <button type="button" onClick={clearBio} className="px-3 py-1 rounded-md text-[10px] font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]">Clear Bio</button>
+                  <button type="button" onClick={resetChanges} disabled={!hasChanges()} className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-[10px] font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)] disabled:opacity-40"><RefreshCcw className="h-3.5 w-3.5" /> Reset</button>
+                  <button type="button" onClick={clearBio} className="inline-flex items-center gap-1 px-3 py-1 rounded-md text-[10px] font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]"><Eraser className="h-3.5 w-3.5" /> Clear Bio</button>
                 </div>
-                <motion.button
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.94 }}
-                  onClick={onSave}
-                  disabled={saving}
-                  className="px-5 py-2 rounded-md text-sm font-medium bg-[var(--pv-orange)] text-[var(--pv-black)] hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/50 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? "Saving..." : "Save Changes"}
+                <motion.button whileHover={{ y: -3 }} whileTap={{ scale: 0.94 }} onClick={onSave} disabled={saving} className="inline-flex items-center gap-2 px-5 py-2 rounded-md text-sm font-medium bg-[var(--pv-orange)] text-[var(--pv-black)] hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/50 disabled:opacity-50 disabled:cursor-not-allowed">
+                  <Save className="h-4 w-4" /> {saving ? "Saving..." : "Save Changes"}
                 </motion.button>
-                <motion.button
-                  whileHover={{ y: -3 }}
-                  whileTap={{ scale: 0.94 }}
-                  onClick={() => setEditing(false)}
-                  className="px-5 py-2 rounded-md text-sm font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]"
-                >
-                  Cancel
+                <motion.button whileHover={{ y: -3 }} whileTap={{ scale: 0.94 }} onClick={() => setEditing(false)} className="inline-flex items-center gap-2 px-5 py-2 rounded-md text-sm font-medium border border-[var(--pv-border)] bg-[var(--pv-surface-alt)] hover:bg-[var(--pv-surface-hover)]">
+                  <XCircle className="h-4 w-4" /> Cancel
                 </motion.button>
                 {hasChanges() && !saving && <span className="text-[10px] text-[var(--pv-text-dim)] ml-2">Unsaved changes</span>}
               </div>
@@ -343,7 +331,7 @@ const Profile = () => {
           <h2 className="text-xl font-semibold tracking-tight mb-4 bg-gradient-to-r from-[var(--pv-orange)] to-[var(--pv-saffron)] bg-clip-text text-transparent">My Content</h2>
           <div className="mb-4 inline-flex rounded-lg overflow-hidden border border-[var(--pv-border)] bg-[var(--pv-surface-alt)]">
             {['prompts','collections'].map(tab => (
-              <button key={tab} onClick={()=>setContentTab(tab)} className={`px-4 py-2 text-xs font-medium transition-colors ${contentTab===tab? 'bg-[var(--pv-surface)] text-[var(--pv-white)]':'text-[var(--pv-text-dim)] hover:text-[var(--pv-white)]'}`}>{tab.charAt(0).toUpperCase()+tab.slice(1)}</button>
+              <button key={tab} onClick={()=>setContentTab(tab)} className={`inline-flex items-center gap-2 px-4 py-2 text-xs font-medium transition-colors ${contentTab===tab? 'bg-[var(--pv-surface)] text-[var(--pv-white)]':'text-[var(--pv-text-dim)] hover:text-[var(--pv-white)]'}`}>{tab.charAt(0).toUpperCase()+tab.slice(1)}</button>
             ))}
           </div>
           <ContentControls />
@@ -376,18 +364,11 @@ const Profile = () => {
 };
 
 // Small helper component for label micro-interaction
-const FloatingField = ({ label, children }) => {
-  return (
-    <motion.label
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="text-xs font-medium tracking-wide space-y-1 text-[var(--pv-text-dim)]"
-    >
-      <span className="inline-block px-2 py-1 rounded-md bg-[var(--pv-surface-alt)]/40 border border-[var(--pv-border)]/60 text-[10px] uppercase tracking-wider">{label}</span>
-      <div className="mt-1">{children}</div>
-    </motion.label>
-  );
-};
+const FloatingField = ({ label, children }) => (
+  <motion.label initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="text-xs font-medium tracking-wide space-y-1 text-[var(--pv-text-dim)]">
+    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-[var(--pv-surface-alt)]/40 border border-[var(--pv-border)]/60 text-[10px] uppercase tracking-wider">{label}</span>
+    <div className="mt-1">{children}</div>
+  </motion.label>
+);
 
 export default Profile;

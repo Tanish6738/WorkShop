@@ -5,6 +5,7 @@ import ProfileHeader from "../../Components/User/ProfileHeader.jsx";
 import UserPrompts from "../../Components/User/UserPrompts.jsx";
 import UserCollections from "../../Components/User/UserCollections.jsx";
 import { motion, AnimatePresence } from "framer-motion";
+import { Search, ArrowUpDown, ArrowDownAZ, ArrowUpAZ, Link2, Share2, ChevronRight, ChevronLeft } from "lucide-react";
 
 const PublicProfile = () => {
   const { id } = useParams();
@@ -126,32 +127,36 @@ const PublicProfile = () => {
 
   const Controls = ({ context }) => (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-5">
-      <div className="flex gap-2 flex-1">
-        <input
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          placeholder={`Search ${context}`}
-          className="flex-1 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/50"
-        />
+      <div className="flex gap-2 flex-1 items-stretch">
+        <div className="flex flex-1 items-center gap-2 px-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] focus-within:ring-2 focus-within:ring-[var(--pv-orange)]/40 transition">
+          <Search className="h-3.5 w-3.5 text-[var(--pv-text-dim)]" />
+          <input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            placeholder={`Search ${context}`}
+            className="flex-1 py-2 bg-transparent text-xs focus:outline-none"
+          />
+        </div>
         <select
           value={sortField}
-          onChange={(e) => setSortField(e.target.value)}
-          className="px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs focus:outline-none"
-        >
+            onChange={(e) => setSortField(e.target.value)}
+            className="px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/40"
+          >
           <option value="createdAt">Newest</option>
           <option value="title">Title</option>
           <option value="likes">Likes</option>
         </select>
         <button
           onClick={() => setSortDir((d) => (d === "asc" ? "desc" : "asc"))}
-          className="px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs hover:bg-[var(--pv-surface-hover)]"
+          className="inline-flex items-center justify-center gap-1 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] text-xs hover:bg-[var(--pv-surface-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--pv-orange)]/40"
+          aria-label="Toggle sort direction"
         >
-          {sortDir === "asc" ? "↑" : "↓"}
+          {sortDir === "asc" ? <ArrowUpAZ className="h-3.5 w-3.5" /> : <ArrowDownAZ className="h-3.5 w-3.5" />}
         </button>
       </div>
       <div className="flex gap-2 text-xs">
-        <button onClick={copyProfileLink} className="px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]">Copy Link</button>
-        <button onClick={shareProfile} className="px-3 py-2 rounded-md bg-[var(--pv-orange)] text-[var(--pv-black)] hover:brightness-110">Share</button>
+        <button onClick={copyProfileLink} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[var(--pv-surface-alt)] border border-[var(--pv-border)] hover:bg-[var(--pv-surface-hover)]"><Link2 className="h-3.5 w-3.5" /> Copy Link</button>
+        <button onClick={shareProfile} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-md bg-[var(--pv-orange)] text-[var(--pv-black)] hover:brightness-110"><Share2 className="h-3.5 w-3.5" /> Share</button>
       </div>
     </div>
   );
@@ -176,7 +181,7 @@ const PublicProfile = () => {
 
       <div className="max-w-5xl mx-auto px-5 md:px-8">
         {/* Mobile Tabs */}
-        <div className="md:hidden mt-8 bg-[var(--pv-surface-alt)]/60 border border-[var(--pv-border)] rounded-lg overflow-hidden backdrop-blur-sm relative">
+  <div className="md:hidden mt-8 bg-[var(--pv-surface-alt)]/60 border border-[var(--pv-border)] rounded-lg overflow-hidden backdrop-blur-sm relative">
           {actionMsg && (
             <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} className="absolute top-2 right-2 text-[10px] px-2 py-1 rounded bg-[var(--pv-surface)] border border-[var(--pv-border)] text-[var(--pv-text-dim)]">{actionMsg}</motion.div>
           )}
